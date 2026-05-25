@@ -1,0 +1,16 @@
+name: default
+version: "1.0.0"
+author: galanhao
+description: "Minimal clean default theme"
+
+config:
+  index:
+    show_excerpt: true
+    read_more: "阅读全文 →"
+  post:
+    toc: true
+    comment: true
+    license: true
+  footer:
+    since: 2026
+    custom_text: "Powered by blog-builder"

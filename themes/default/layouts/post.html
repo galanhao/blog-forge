@@ -1,0 +1,36 @@
+{{template "page-start" .}}
+<article class="bg-white rounded-lg shadow-sm p-8">
+    <header class="mb-6">
+        <h1 class="text-3xl font-bold mb-2">{{.Title}}</h1>
+        <div class="text-sm text-gray-500">
+            <time>{{.Date}}</time>
+            {{if .Updated}}<span> · 更新于 {{.Updated}}</span>{{end}}
+            {{if .Author}}<span> · {{.Author}}</span>{{end}}
+        </div>
+        <div class="mt-2 flex gap-2 flex-wrap">
+        {{range .Tags}}
+            <a href="{{.URL}}" class="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-gray-200 transition">#{{.Name}}</a>
+        {{end}}
+        </div>
+    </header>
+
+    {{if .CoverImage}}
+    <img src="{{.CoverImage}}" alt="{{.Title}}" class="w-full rounded-lg mb-6">
+    {{end}}
+
+    <div class="prose prose-lg max-w-none">
+        {{safeHTML .Content}}
+    </div>
+
+    {{if or .Prev .Next}}
+    <nav class="mt-8 pt-6 border-t flex justify-between">
+        {{if .Prev}}<a href="{{.Prev.Permalink}}" class="text-blue-600 hover:underline">← {{.Prev.Title}}</a>{{end}}
+        {{if .Next}}<a href="{{.Next.Permalink}}" class="text-blue-600 hover:underline">{{.Next.Title}} →</a>{{end}}
+    </nav>
+    {{end}}
+
+    {{if .Comments}}
+    <div id="giscus-container" class="mt-8 pt-6 border-t"></div>
+    {{end}}
+</article>
+{{template "page-end" .}}

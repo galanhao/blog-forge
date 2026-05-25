@@ -1,0 +1,13 @@
+{{template "page-start" .}}
+<div class="bg-white rounded-lg shadow-sm p-8">
+    <h1 class="text-3xl font-bold mb-6">归档</h1>
+    <div class="space-y-4">
+    {{range .Posts}}
+    <div class="flex items-baseline gap-4">
+        <time class="text-sm text-gray-500 w-24 shrink-0">{{.Date}}</time>
+        <a href="{{.Permalink}}" class="text-blue-600 hover:underline">{{.Title}}</a>
+    </div>
+    {{end}}
+    </div>
+</div>
+{{template "page-end" .}}

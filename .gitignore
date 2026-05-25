@@ -1,0 +1,21 @@
+# Binary
+blog-builder
+/builder
+
+# Build output
+dist/
+
+# Database (if blog-api is co-located)
+*.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env

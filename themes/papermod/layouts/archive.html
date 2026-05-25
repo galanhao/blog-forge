@@ -1,0 +1,25 @@
+{{template "page-start" .}}
+
+<header class="page-header">
+    <h1>归档</h1>
+</header>
+
+<div class="archive-year">
+{{range .Posts}}
+    <div class="archive-month">
+        <h3 class="archive-month-header">
+            <span>{{.Date}}</span>
+        </h3>
+        <div class="archive-posts">
+            <article class="post-entry">
+                <header class="entry-header">
+                    <h2>{{.Title}}</h2>
+                </header>
+                <a class="entry-link" aria-label="post link to {{.Title}}" href="{{.Permalink}}"></a>
+            </article>
+        </div>
+    </div>
+{{end}}
+</div>
+
+{{template "page-end" .}}

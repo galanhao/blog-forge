@@ -1,0 +1,36 @@
+name: Deploy Blog
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'content/**'
+      - 'themes/**'
+      - '_config.yml'
+      - 'static/**'
+      - '.github/workflows/deploy.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build site
+        run: |
+          go build -o blog-builder ./cmd/builder/
+          ./blog-builder build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages

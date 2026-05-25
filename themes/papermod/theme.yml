@@ -1,0 +1,23 @@
+name: papermod
+version: "1.0.0"
+author: adityatelange (adapted)
+description: "PaperMod theme adapted from Hugo PaperMod"
+
+config:
+  defaultTheme: auto
+  showReadingTime: false
+  showShareButtons: false
+  showPostNavLinks: true
+  showCodeCopyButtons: true
+  showToc: true
+  tocOpen: false
+  comments: false
+  homeInfoParams:
+    title: ""
+    content: ""
+  socialIcons: []
+  assets:
+    favicon: "/favicon.ico"
+  footer:
+    hideCopyright: false
+    text: "Powered by blog-builder"

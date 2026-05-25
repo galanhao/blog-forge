@@ -1,0 +1,6 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{if .Title}}{{.Title}} - {{end}}{{.Site.Title}}</title>
+{{if .Excerpt}}<meta name="description" content="{{.Excerpt}}">{{end}}
+<link rel="stylesheet" href="/assets/css/main.css">
+{{if .Site.Config}}<link rel="canonical" href="{{.Site.URL}}{{.Permalink}}">{{end}}

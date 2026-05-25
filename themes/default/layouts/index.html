@@ -1,0 +1,21 @@
+{{template "page-start" .}}
+<div class="space-y-8">
+{{range .Posts}}
+<article class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition">
+    <h2 class="text-xl font-semibold mb-2">
+        <a href="{{.Permalink}}" class="hover:text-blue-600 transition">{{.Title}}</a>
+    </h2>
+    <div class="text-sm text-gray-500 mb-3">
+        <time>{{.Date}}</time>
+        {{if .Author}}<span> · {{.Author}}</span>{{end}}
+    </div>
+    {{if .Excerpt}}<p class="text-gray-700 leading-relaxed">{{.Excerpt}}</p>{{end}}
+    <div class="mt-3 flex gap-2 flex-wrap">
+    {{range .Tags}}
+        <a href="{{.URL}}" class="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-gray-200 transition">{{.Name}}</a>
+    {{end}}
+    </div>
+</article>
+{{end}}
+</div>
+{{template "page-end" .}}

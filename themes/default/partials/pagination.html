@@ -1,0 +1,9 @@
+{{if .Total}}
+<nav class="mt-8 flex justify-center gap-2">
+    {{if .PrevURL}}<a href="{{.PrevURL}}" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 transition">← 上一页</a>{{end}}
+    {{range .Pages}}
+    <a href="{{.URL}}" class="px-3 py-1 rounded {{if .IsCurr}}bg-blue-600 text-white{{else}}bg-gray-100 hover:bg-gray-200{{end}} transition">{{.Number}}</a>
+    {{end}}
+    {{if .NextURL}}<a href="{{.NextURL}}" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 transition">下一页 →</a>{{end}}
+</nav>
+{{end}}

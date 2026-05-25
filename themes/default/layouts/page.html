@@ -1,0 +1,8 @@
+{{template "page-start" .}}
+<article class="bg-white rounded-lg shadow-sm p-8">
+    <h1 class="text-3xl font-bold mb-6">{{.Title}}</h1>
+    <div class="prose prose-lg max-w-none">
+        {{safeHTML .Content}}
+    </div>
+</article>
+{{template "page-end" .}}

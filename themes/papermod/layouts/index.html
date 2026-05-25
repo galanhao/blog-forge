@@ -1,0 +1,64 @@
+{{template "page-start" .}}
+
+{{if .Title}}
+<header class="page-header">
+    <h1>{{.Title}}</h1>
+</header>
+{{end}}
+
+{{$homeInfo := .Theme.Config.homeInfoParams}}
+{{if and (eq .Layout "index") $homeInfo}}
+<article class="first-entry home-info">
+    <header class="entry-header">
+        <h1>{{$homeInfo.title}}</h1>
+    </header>
+    <div class="entry-content">
+        <p>{{$homeInfo.content}}</p>
+    </div>
+</article>
+{{end}}
+
+<div class="post-list">
+{{range $i, $post := .Posts}}
+{{if and (eq $.Layout "index") (eq $i 0)}}
+<article class="first-entry">
+{{else}}
+<article class="post-entry">
+{{end}}
+    {{if $post.CoverImage}}
+    <figure class="entry-cover">
+        <img src="{{$post.CoverImage}}" alt="{{$post.Title}}" loading="lazy">
+    </figure>
+    {{end}}
+    <header class="entry-header">
+        <h2 class="entry-hint-parent">
+            {{$post.Title}}
+        </h2>
+    </header>
+    {{if $post.Excerpt}}
+    <div class="entry-content">
+        <p>{{$post.Excerpt}}</p>
+    </div>
+    {{end}}
+    <footer class="entry-footer">
+        <span>{{$post.Date}}</span>
+    </footer>
+    <a class="entry-link" aria-label="post link to {{$post.Title}}" href="{{$post.Permalink}}"></a>
+</article>
+{{end}}
+</div>
+
+{{if gt .Pagination.Total 1}}
+<footer class="page-footer">
+    <nav class="pagination">
+        {{if .Pagination.PrevURL}}
+        <a class="prev" href="{{.Pagination.PrevURL}}">« 上一页</a>
+        {{end}}
+        {{if .Pagination.NextURL}}
+        <a class="next" href="{{.Pagination.NextURL}}">下一页 »</a>
+        {{end}}
+    </nav>
+</footer>
+{{end}}
+
+{{template "page-end" .}}

@@ -1,0 +1,33 @@
+title: "galan's blog"
+subtitle: "技术与生活"
+author: galanhao
+language: zh-CN
+timezone: Asia/Shanghai
+url: "https://blog.galanhao.com"
+root: /
+per_page: 10
+theme: papermod
+
+permalink:
+  format: date-full
+
+nav:
+  - name: 首页
+    url: /
+  - name: 归档
+    url: /archives/
+  - name: 关于
+    url: /about/
+
+deploy:
+  pages: true
+
+integrations:
+  comment:
+    provider: none
+  analytics:
+    provider: none
+  pv:
+    provider: none
+  wallpaper:
+    provider: none

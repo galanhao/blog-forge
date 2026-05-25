@@ -1,0 +1,32 @@
+{{define "page-start"}}
+<!DOCTYPE html>
+<html lang="{{.Site.Language}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{if .Title}}{{.Title}} - {{end}}{{.Site.Title}}</title>
+    {{if .Excerpt}}<meta name="description" content="{{.Excerpt}}">{{end}}
+    <link rel="stylesheet" href="/assets/css/main.css">
+</head>
+<body class="min-h-screen bg-gray-50 text-gray-900">
+    <header class="bg-white shadow-sm">
+        <nav class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="/" class="text-xl font-bold hover:text-blue-600 transition">{{.Site.Title}}</a>
+            <div class="flex gap-4">
+            {{range .Site.Nav}}
+                <a href="{{.URL}}" class="text-gray-600 hover:text-blue-600 transition">{{.Name}}</a>
+            {{end}}
+            </div>
+        </nav>
+    </header>
+    <main class="max-w-3xl mx-auto px-4 py-8">
+{{end}}
+
+{{define "page-end"}}
+    </main>
+    <footer class="max-w-3xl mx-auto px-4 py-8 text-center text-sm text-gray-500 border-t">
+        <p>&copy; 2026 {{.Site.Author}}</p>
+    </footer>
+</body>
+</html>
+{{end}}
