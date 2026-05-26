@@ -13,4 +13,4 @@ config:
     license: true
   footer:
     since: 2026
-    custom_text: "Powered by blog-builder"
+    custom_text: "Powered by blog-forge"

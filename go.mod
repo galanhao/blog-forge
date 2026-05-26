@@ -1,4 +1,4 @@
-module github.com/galanhao/blog-builder
+module github.com/galanhao/blog-forge
 
 go 1.24
 

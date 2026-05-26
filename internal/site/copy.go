@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/galanhao/blog-builder/internal/theme"
+	"github.com/galanhao/blog-forge/internal/theme"
 )
 
 // copyAssets copies theme assets, theme static, and site static to dist.

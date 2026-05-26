@@ -25,8 +25,8 @@ jobs:
 
       - name: Build site
         run: |
-          go build -o blog-builder ./cmd/builder/
-          ./blog-builder build
+          go build -o blog-forge ./cmd/builder/
+          ./blog-forge build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

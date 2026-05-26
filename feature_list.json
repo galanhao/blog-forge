@@ -1,0 +1,139 @@
+{
+  "features": [
+    {
+      "id": "feat-001",
+      "name": "Core Build Pipeline",
+      "description": "Load Markdown content → render HTML → apply templates → write static files to dist/",
+      "dependencies": [],
+      "status": "pass",
+      "verification": "./blog-forge build && ls dist/index.html",
+      "evidence": "Build produces 14+ files in dist/ including index.html, post pages, tag/category pages"
+    },
+    {
+      "id": "feat-002",
+      "name": "PaperMod Theme",
+      "description": "Full PaperMod theme adaptation: dark/light/auto toggle, responsive layout, all 8 template layouts rendering correctly",
+      "dependencies": ["feat-001"],
+      "status": "pass",
+      "verification": "theme=papermod in _config.yml && ./blog-forge build && grep 'theme-toggle' dist/index.html",
+      "evidence": "PaperMod builds successfully, theme toggle JS present, CSS loads correctly"
+    },
+    {
+      "id": "feat-003",
+      "name": "RSS Feed",
+      "description": "Generate valid RSS 2.0 XML feed at dist/index.xml with latest 20 posts including full content",
+      "dependencies": ["feat-001"],
+      "status": "pass",
+      "verification": "./blog-forge build && head -3 dist/index.xml | grep -q 'xml version' && grep -q 'rss' dist/index.xml",
+      "evidence": "dist/index.xml generated with RSS 2.0 header, channel info, and item entries"
+    },
+    {
+      "id": "feat-004",
+      "name": "Sitemap",
+      "description": "Generate valid sitemap.xml with all pages including lastmod timestamps",
+      "dependencies": ["feat-001"],
+      "status": "pass",
+      "verification": "./blog-forge build && grep -q 'urlset' dist/sitemap.xml",
+      "evidence": "dist/sitemap.xml generated with urlset, url entries, and loc/lastmod tags"
+    },
+    {
+      "id": "feat-005",
+      "name": "GitHub Actions Deploy",
+      "description": "CI workflow: push main → Go build → blog-forge build → deploy to gh-pages",
+      "dependencies": ["feat-001"],
+      "status": "pass",
+      "verification": "test -f .github/workflows/deploy.yml",
+      "evidence": ".github/workflows/deploy.yml exists with Go setup, build, and peaceiris/actions-gh-pages steps"
+    },
+    {
+      "id": "feat-006",
+      "name": "Fix nowDate Hardcode",
+      "description": "nowDate() in cmd/builder/main.go is hardcoded to 2026-05-25 instead of using time.Now(). blog-forge new always creates posts with wrong date.",
+      "dependencies": [],
+      "status": "not-started",
+      "verification": "grep -q 'time.Now' cmd/builder/main.go && ./blog-forge new test-post && head -3 content/posts/*.md | grep $(date +%Y-%m-%d)",
+      "evidence": ""
+    },
+    {
+      "id": "feat-007",
+      "name": "Extract Shared slugify",
+      "description": "slugify() is duplicated in internal/site/context.go and internal/permalink/permalink.go. Extract to a shared internal/util package.",
+      "dependencies": [],
+      "status": "not-started",
+      "verification": "grep -r 'func slugify' internal/ | wc -l | grep -q 1",
+      "evidence": ""
+    },
+    {
+      "id": "feat-008",
+      "name": "Fix RSS atom:link XML",
+      "description": "RSS feed defines AtomLink as a string field which xml.Marshal will XML-escape, producing invalid RSS. Should be a structured XML element with xml:\",innerxml\" or proper struct.",
+      "dependencies": ["feat-003"],
+      "status": "not-started",
+      "verification": "./blog-forge build && grep -q 'atom:link' dist/index.xml && ! grep -q '&lt;atom:link' dist/index.xml",
+      "evidence": ""
+    },
+    {
+      "id": "feat-009",
+      "name": "Fix parseTime Silent Swallow",
+      "description": "parseTime in internal/content/loader.go silently returns time.Time{} on malformed dates, which becomes time.Now(). Should return an error so the caller can report which file has a bad date.",
+      "dependencies": [],
+      "status": "not-started",
+      "verification": "grep -A5 'func parseTime' internal/content/loader.go | grep -q 'error'",
+      "evidence": ""
+    },
+    {
+      "id": "feat-010",
+      "name": "Wire TOC Generation",
+      "description": "PostCtx.TOC field exists but is never populated. Wire goldmark-toc extension so posts with headings get a table of contents in the TOC field.",
+      "dependencies": [],
+      "status": "not-started",
+      "verification": "./blog-forge build && grep -q 'nav' dist/2026/05/20/go-ddd/index.html || grep -q 'toc' dist/2026/05/20/go-ddd/index.html",
+      "evidence": ""
+    },
+    {
+      "id": "feat-011",
+      "name": "Wire Theme MergeConfig",
+      "description": "Theme.MergeConfig() method exists but is never called from the build pipeline. User theme overrides in _config.yml under the theme key should override theme.yml defaults.",
+      "dependencies": [],
+      "status": "not-started",
+      "verification": "grep -q 'MergeConfig' internal/site/builder.go",
+      "evidence": ""
+    },
+    {
+      "id": "feat-012",
+      "name": "Wire serve Command",
+      "description": "internal/serve/ package exists but is not wired into CLI. Add 'serve' subcommand to cmd/builder/main.go that starts local HTTP server on port 8080.",
+      "dependencies": [],
+      "status": "not-started",
+      "verification": "./blog-forge serve --help 2>&1 || ./blog-forge serve 2>&1 | head -1",
+      "evidence": ""
+    },
+    {
+      "id": "feat-013",
+      "name": "Add Test Framework + Core Tests",
+      "description": "Zero test files in the project. Add table-driven tests for: permalink.Compute, content.ParseFrontMatter, render.AutoExcerpt, theme.Load, config.Load.",
+      "dependencies": [],
+      "status": "not-started",
+      "verification": "source /root/.g/env && go test ./internal/permalink/ ./internal/content/ ./internal/render/ ./internal/theme/ ./internal/config/ -count=1",
+      "evidence": ""
+    },
+    {
+      "id": "feat-014",
+      "name": "Populate SiteCtx.Config",
+      "description": "SiteCtx.Config is always nil — never assigned in buildSiteCtx(). Either populate it from _config.yml extras or remove the field if unused.",
+      "dependencies": [],
+      "status": "not-started",
+      "verification": "grep -q 'Config' internal/theme/context.go",
+      "evidence": ""
+    },
+    {
+      "id": "feat-015",
+      "name": "Remove Dead Code",
+      "description": "Clean up: IntegrateConf.Wallpaper/PV/Deploy are configured but never used; Post.Weight/Featured/Lang are parsed but never used; internal/serve/ is unreferenced.",
+      "dependencies": ["feat-012"],
+      "status": "not-started",
+      "verification": "go vet ./... 2>&1 | head -5",
+      "evidence": ""
+    }
+  ]
+}

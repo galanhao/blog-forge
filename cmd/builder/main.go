@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/galanhao/blog-builder/internal/config"
-	"github.com/galanhao/blog-builder/internal/site"
+	"github.com/galanhao/blog-forge/internal/config"
+	"github.com/galanhao/blog-forge/internal/site"
 )
 
 const (
@@ -45,12 +45,12 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Println("blog-builder - static site generator")
+	fmt.Println("blog-forge - static site generator")
 	fmt.Println()
 	fmt.Println("Usage:")
-	fmt.Println("  blog-builder build    Build the site")
-	fmt.Println("  blog-builder new      Create a new post")
-	fmt.Println("  blog-builder init     Initialize a new site")
+	fmt.Println("  blog-forge build    Build the site")
+	fmt.Println("  blog-forge new      Create a new post")
+	fmt.Println("  blog-forge init     Initialize a new site")
 }
 
 func runBuild() error {
@@ -74,7 +74,7 @@ func runBuild() error {
 
 func runNew() error {
 	if len(os.Args) < 3 {
-		return fmt.Errorf("usage: blog-builder new <title>")
+		return fmt.Errorf("usage: blog-forge new <title>")
 	}
 	title := os.Args[2]
 	return createPost(title)

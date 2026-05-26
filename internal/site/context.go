@@ -5,9 +5,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/galanhao/blog-builder/internal/config"
-	"github.com/galanhao/blog-builder/internal/content"
-	"github.com/galanhao/blog-builder/internal/theme"
+	"github.com/galanhao/blog-forge/internal/config"
+	"github.com/galanhao/blog-forge/internal/content"
+	"github.com/galanhao/blog-forge/internal/theme"
 )
 
 // buildSiteCtx creates the site-wide template context.

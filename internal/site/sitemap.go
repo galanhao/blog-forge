@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/galanhao/blog-builder/internal/content"
-	"github.com/galanhao/blog-builder/internal/theme"
+	"github.com/galanhao/blog-forge/internal/content"
+	"github.com/galanhao/blog-forge/internal/theme"
 )
 
 // urlsetXML defines the sitemap structure.

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/galanhao/blog-builder/internal/content"
-	"github.com/galanhao/blog-builder/internal/theme"
+	"github.com/galanhao/blog-forge/internal/content"
+	"github.com/galanhao/blog-forge/internal/theme"
 )
 
 // rssXML defines the top-level RSS structure.
@@ -66,7 +66,7 @@ func (b *Builder) writeRSS(distDir string, siteCtx theme.SiteCtx, posts []*conte
 			Title:       siteCtx.Title,
 			Link:        siteCtx.URL,
 			Description: siteCtx.Subtitle,
-			Generator:   "blog-builder",
+			Generator:   "blog-forge",
 			LastBuild:   time.Now().Format(time.RFC1123),
 			AtomLink:    fmt.Sprintf(`<atom:link href="%s/index.xml" rel="self" type="application/rss+xml"/>`, siteCtx.URL),
 			Items:       items,

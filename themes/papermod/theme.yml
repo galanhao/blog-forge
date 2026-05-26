@@ -20,4 +20,4 @@ config:
     favicon: "/favicon.ico"
   footer:
     hideCopyright: false
-    text: "Powered by blog-builder"
+    text: "Powered by blog-forge"

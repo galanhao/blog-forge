@@ -6,7 +6,7 @@ categories: [生活]
 excerpt: "第一篇博文，从这里出发。"
 ---
 
-这是我的第一篇博客文章，使用 blog-builder 构建。
+这是我的第一篇博客文章，使用 blog-forge 构建。
 
 ## 为什么写博客
 

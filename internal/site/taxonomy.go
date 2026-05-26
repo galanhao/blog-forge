@@ -3,8 +3,8 @@ package site
 import (
 	"fmt"
 
-	"github.com/galanhao/blog-builder/internal/content"
-	"github.com/galanhao/blog-builder/internal/theme"
+	"github.com/galanhao/blog-forge/internal/content"
+	"github.com/galanhao/blog-forge/internal/theme"
 )
 
 // writeArchive generates the archive page grouped by year.

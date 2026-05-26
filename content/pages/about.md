@@ -11,4 +11,4 @@ layout: page
 ---
 
 - GitHub: [galanhao](https://github.com/galanhao)
-- Blog: 使用 blog-builder 构建
+- Blog: 使用 blog-forge 构建
