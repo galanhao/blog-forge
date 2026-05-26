@@ -1,14 +1,11 @@
 ---
-title: "关于"
-date: 2026-01-01 00:00:00
+title: 关于
 layout: page
+date: 2026-05-27 12:00:00
 ---
 
-一个写代码的人。
+这是一个由 **blog-forge** 驱动的个人博客。
 
-喜欢 Go、DDD、运维自动化，偶尔写点生活随笔。
+博客内容以技术笔记和生活随笔为主，所有文章使用 Markdown 编写，通过 GitHub Actions 自动构建和部署。
 
----
-
-- GitHub: [galanhao](https://github.com/galanhao)
-- Blog: 使用 blog-forge 构建
+感谢阅读 🙏

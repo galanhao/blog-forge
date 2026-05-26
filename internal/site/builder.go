@@ -111,6 +111,10 @@ func (b *Builder) Build(distDir string) error {
 		return fmt.Errorf("copy assets: %w", err)
 	}
 
+	if err := copyPostAssets(distDir, posts); err != nil {
+		return fmt.Errorf("copy post assets: %w", err)
+	}
+
 	if err := b.writeRSS(distDir, siteCtx, posts); err != nil {
 		return fmt.Errorf("rss: %w", err)
 	}
