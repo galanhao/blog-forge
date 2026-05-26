@@ -36,7 +36,7 @@ If baseline verification is failing, repair that first before adding new scope.
 ## Architecture Boundaries
 
 ```
-cmd/builder/       → CLI entry point only; no business logic
+cmd/blog-forge/       → CLI entry point only; no business logic
 internal/config/   → Site config loading; depends on nothing internal
 internal/content/  → Post model + loader; depends on nothing internal
 internal/render/   → Markdown → HTML rendering; depends on nothing internal
@@ -104,7 +104,7 @@ Before ending a session:
 
 Required checks:
 - `source /root/.g/env && go test ./...`
-- `go build -o blog-forge ./cmd/builder/`
+- `go build -o blog-forge ./cmd/blog-forge/`
 - `./blog-forge build`
 
 ## Escalation

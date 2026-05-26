@@ -48,10 +48,10 @@
     {
       "id": "feat-006",
       "name": "Fix nowDate Hardcode",
-      "description": "nowDate() in cmd/builder/main.go is hardcoded to 2026-05-25 instead of using time.Now(). blog-forge new always creates posts with wrong date.",
+      "description": "nowDate() in cmd/blog-forge/main.go is hardcoded to 2026-05-25 instead of using time.Now(). blog-forge new always creates posts with wrong date.",
       "dependencies": [],
       "status": "not-started",
-      "verification": "grep -q 'time.Now' cmd/builder/main.go && ./blog-forge new test-post && head -3 content/posts/*.md | grep $(date +%Y-%m-%d)",
+      "verification": "grep -q 'time.Now' cmd/blog-forge/main.go && ./blog-forge new test-post && head -3 content/posts/*.md | grep $(date +%Y-%m-%d)",
       "evidence": ""
     },
     {
@@ -102,7 +102,7 @@
     {
       "id": "feat-012",
       "name": "Wire serve Command",
-      "description": "internal/serve/ package exists but is not wired into CLI. Add 'serve' subcommand to cmd/builder/main.go that starts local HTTP server on port 8080.",
+      "description": "internal/serve/ package exists but is not wired into CLI. Add 'serve' subcommand to cmd/blog-forge/main.go that starts local HTTP server on port 8080.",
       "dependencies": [],
       "status": "not-started",
       "verification": "./blog-forge serve --help 2>&1 || ./blog-forge serve 2>&1 | head -1",

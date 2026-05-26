@@ -28,7 +28,7 @@ fi
 # Build check
 echo ""
 echo "=== Build Check ==="
-if GOPROXY=https://goproxy.cn,direct GONOSUMCHECK=* go build -o blog-forge ./cmd/builder/ 2>&1; then
+if GOPROXY=https://goproxy.cn,direct GONOSUMCHECK=* go build -o blog-forge ./cmd/blog-forge/ 2>&1; then
   echo "✅ Build succeeds"
 else
   echo "❌ Build FAILED — fix before proceeding"

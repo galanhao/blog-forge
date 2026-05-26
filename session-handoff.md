@@ -16,7 +16,7 @@
 
 | Check | Command | Result | Notes |
 |---|---|---|---|
-| Build | `go build -o blog-forge ./cmd/builder/` | ✅ | Clean build |
+| Build | `go build -o blog-forge ./cmd/blog-forge/` | ✅ | Clean build |
 | Site | `./blog-forge build` | ✅ | 14+ files in dist/ |
 | Tests | `go test ./...` | ⚠️ | No test files yet |
 

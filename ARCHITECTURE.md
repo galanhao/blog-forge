@@ -7,7 +7,7 @@ blog-forge is a static site generator written in Go. It reads Markdown files wit
 ## Package Dependency Graph
 
 ```
-                   cmd/builder
+                   cmd/blog-forge
                        │
                     internal/site ──────────────────────────┐
                    ╱    │    ╲    ╲    ╲                     │
