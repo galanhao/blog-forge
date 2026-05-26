@@ -12,9 +12,6 @@ config:
   showToc: true
   tocOpen: false
   comments: false
-  homeInfoParams:
-    title: ""
-    content: ""
   socialIcons: []
   assets:
     favicon: "/favicon.ico"

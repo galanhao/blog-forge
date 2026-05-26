@@ -79,6 +79,7 @@ func buildPostCtx(siteCtx theme.SiteCtx, themeCtx theme.ThemeCtx, p *content.Pos
 		Author:     p.Author,
 		Comments:   p.Comments,
 		Layout:     p.Layout,
+		TOC:        p.TOC,
 	}
 }
 

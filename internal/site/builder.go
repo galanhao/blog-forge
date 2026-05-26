@@ -71,7 +71,7 @@ func (b *Builder) Build(distDir string) error {
 	}
 
 	computePermalinks(b.cfg, posts)
-	computePermalinks(b.cfg, pages)
+	computePagePermalinks(b.cfg, pages)
 
 	if err := os.RemoveAll(distDir); err != nil {
 		return fmt.Errorf("clean dist: %w", err)
@@ -125,11 +125,12 @@ func (b *Builder) Build(distDir string) error {
 // renderContent renders markdown content to HTML for each post.
 func renderContent(r *render.MarkdownRenderer, posts []*content.Post) error {
 	for _, p := range posts {
-		html, err := r.Render(p.Content)
+		html, toc, err := r.RenderWithTOC(p.Content)
 		if err != nil {
 			return fmt.Errorf("render %s: %w", p.Slug, err)
 		}
 		p.HTML = html
+		p.TOC = toc
 
 		if !p.HasExcerpt() {
 			p.Excerpt = render.AutoExcerpt(p.Content, 200)
@@ -147,6 +148,14 @@ func computePermalinks(cfg *config.SiteConfig, posts []*content.Post) {
 	}
 	for _, p := range posts {
 		p.Permalink = permalink.Compute(pc, p.Slug, p.Date, p.CategorySet(), "")
+	}
+}
+
+// computePagePermalinks sets the Permalink field on standalone pages.
+// Pages use a flat /slug/ format regardless of date.
+func computePagePermalinks(cfg *config.SiteConfig, pages []*content.Post) {
+	for _, p := range pages {
+		p.Permalink = cfg.Root + "/" + p.Slug + "/"
 	}
 }
 

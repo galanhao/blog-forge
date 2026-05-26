@@ -7,13 +7,13 @@
 {{end}}
 
 {{$homeInfo := .Theme.Config.homeInfoParams}}
-{{if and (eq .Layout "index") $homeInfo}}
+{{if and (eq .Layout "index") $homeInfo $homeInfo.title}}
 <article class="first-entry home-info">
     <header class="entry-header">
         <h1>{{$homeInfo.title}}</h1>
     </header>
     <div class="entry-content">
-        <p>{{$homeInfo.content}}</p>
+        {{$homeInfo.content}}
     </div>
 </article>
 {{end}}

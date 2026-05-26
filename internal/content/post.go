@@ -39,6 +39,7 @@ type Post struct {
 
 	// computed after loading
 	FilePath string
+	TOC      string // table of contents HTML
 }
 
 // IsPage reports whether the post is a standalone page (not a blog post).
