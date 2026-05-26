@@ -3,11 +3,11 @@ package site
 import (
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/galanhao/blog-forge/internal/config"
 	"github.com/galanhao/blog-forge/internal/content"
 	"github.com/galanhao/blog-forge/internal/theme"
+	"github.com/galanhao/blog-forge/internal/util"
 )
 
 // buildSiteCtx creates the site-wide template context.
@@ -46,12 +46,12 @@ func buildThemeCtx(t *theme.Theme) theme.ThemeCtx {
 func buildPostCtx(siteCtx theme.SiteCtx, themeCtx theme.ThemeCtx, p *content.Post) theme.PostCtx {
 	tags := make([]theme.TagCtx, 0, len(p.Tags))
 	for _, t := range p.TagSet() {
-		tags = append(tags, theme.TagCtx{Name: t, URL: "/tags/" + slugify(t) + "/"})
+		tags = append(tags, theme.TagCtx{Name: t, URL: "/tags/" + util.Slugify(t) + "/"})
 	}
 
 	cats := make([]theme.CategoryCtx, 0, len(p.Categories))
 	for _, c := range p.CategorySet() {
-		cats = append(cats, theme.CategoryCtx{Name: c, URL: "/categories/" + slugify(c) + "/"})
+		cats = append(cats, theme.CategoryCtx{Name: c, URL: "/categories/" + util.Slugify(c) + "/"})
 	}
 
 	dateStr := ""
@@ -120,13 +120,6 @@ func pageURL(baseURL string, page int) string {
 		return baseURL
 	}
 	return fmt.Sprintf("%s/page/%d/", baseURL, page)
-}
-
-// slugify converts a string to a URL-safe slug.
-func slugify(s string) string {
-	s = strings.ToLower(s)
-	s = strings.ReplaceAll(s, " ", "-")
-	return s
 }
 
 // groupByYear groups posts by year.

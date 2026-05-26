@@ -5,6 +5,7 @@ import (
 
 	"github.com/galanhao/blog-forge/internal/content"
 	"github.com/galanhao/blog-forge/internal/theme"
+	"github.com/galanhao/blog-forge/internal/util"
 )
 
 // writeArchive generates the archive page grouped by year.
@@ -51,7 +52,7 @@ func (b *Builder) writeTags(distDir string, siteCtx theme.SiteCtx, themeCtx them
 		tagCtx := theme.TagCtx{
 			Name:  tag,
 			Count: len(tagPosts),
-			URL:   "/tags/" + slugify(tag) + "/",
+			URL:   "/tags/" + util.Slugify(tag) + "/",
 		}
 
 		idxCtx := theme.IndexCtx{
@@ -59,7 +60,7 @@ func (b *Builder) writeTags(distDir string, siteCtx theme.SiteCtx, themeCtx them
 			Theme:     themeCtx,
 			Layout:    "tag",
 			Title:     "标签: " + tag,
-			Permalink: "/tags/" + slugify(tag) + "/",
+			Permalink: "/tags/" + util.Slugify(tag) + "/",
 			Posts:     postCtxs,
 			Tag:       &tagCtx,
 			Pagination: theme.PaginationCtx{Current: 1, Total: 1},
@@ -70,7 +71,7 @@ func (b *Builder) writeTags(distDir string, siteCtx theme.SiteCtx, themeCtx them
 			return fmt.Errorf("render tag %s: %w", tag, err)
 		}
 
-		outPath := fmt.Sprintf("%s/tags/%s/index.html", distDir, slugify(tag))
+		outPath := fmt.Sprintf("%s/tags/%s/index.html", distDir, util.Slugify(tag))
 		if err := writeFile(outPath, html); err != nil {
 			return err
 		}
@@ -92,7 +93,7 @@ func (b *Builder) writeCategories(distDir string, siteCtx theme.SiteCtx, themeCt
 		catCtx := theme.CategoryCtx{
 			Name:  cat,
 			Count: len(catPosts),
-			URL:   "/categories/" + slugify(cat) + "/",
+			URL:   "/categories/" + util.Slugify(cat) + "/",
 		}
 
 		idxCtx := theme.IndexCtx{
@@ -100,7 +101,7 @@ func (b *Builder) writeCategories(distDir string, siteCtx theme.SiteCtx, themeCt
 			Theme:     themeCtx,
 			Layout:    "category",
 			Title:     "分类: " + cat,
-			Permalink: "/categories/" + slugify(cat) + "/",
+			Permalink: "/categories/" + util.Slugify(cat) + "/",
 			Posts:     postCtxs,
 			Category:  &catCtx,
 			Pagination: theme.PaginationCtx{Current: 1, Total: 1},
@@ -111,7 +112,7 @@ func (b *Builder) writeCategories(distDir string, siteCtx theme.SiteCtx, themeCt
 			return fmt.Errorf("render category %s: %w", cat, err)
 		}
 
-		outPath := fmt.Sprintf("%s/categories/%s/index.html", distDir, slugify(cat))
+		outPath := fmt.Sprintf("%s/categories/%s/index.html", distDir, util.Slugify(cat))
 		if err := writeFile(outPath, html); err != nil {
 			return err
 		}

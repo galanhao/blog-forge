@@ -19,13 +19,21 @@ type rssXML struct {
 
 // channel represents the RSS channel.
 type channel struct {
-	Title       string `xml:"title"`
-	Link        string `xml:"link"`
-	Description string `xml:"description"`
-	Generator   string `xml:"generator"`
-	LastBuild   string `xml:"lastBuildDate"`
-	AtomLink    string `xml:"atom:link"`
+	Title       string    `xml:"title"`
+	Link        string    `xml:"link"`
+	AtomLink    atomLink  `xml:"atom:link"`
+	Description string    `xml:"description"`
+	Generator   string    `xml:"generator"`
+	LastBuild   string    `xml:"lastBuildDate"`
 	Items       []rssItem `xml:"item"`
+}
+
+// atomLink represents the self-referencing atom:link element required by RSS spec.
+type atomLink struct {
+	XMLName xml.Name `xml:"atom:link"`
+	Href    string   `xml:"href,attr"`
+	Rel     string   `xml:"rel,attr"`
+	Type    string   `xml:"type,attr"`
 }
 
 // rssItem represents a single RSS entry.
@@ -55,7 +63,7 @@ func (b *Builder) writeRSS(distDir string, siteCtx theme.SiteCtx, posts []*conte
 			GUID:        permalink,
 			Description: p.Excerpt,
 			Content:     p.HTML,
-			PubDate:     p.Date.Format(time.RFC1123),
+			PubDate:     p.Date.UTC().Format(time.RFC1123Z),
 		})
 	}
 
@@ -65,10 +73,10 @@ func (b *Builder) writeRSS(distDir string, siteCtx theme.SiteCtx, posts []*conte
 		Channel: channel{
 			Title:       siteCtx.Title,
 			Link:        siteCtx.URL,
+			AtomLink:    atomLink{Href: siteCtx.URL + "/index.xml", Rel: "self", Type: "application/rss+xml"},
 			Description: siteCtx.Subtitle,
 			Generator:   "blog-forge",
-			LastBuild:   time.Now().Format(time.RFC1123),
-			AtomLink:    fmt.Sprintf(`<atom:link href="%s/index.xml" rel="self" type="application/rss+xml"/>`, siteCtx.URL),
+			LastBuild:   time.Now().UTC().Format(time.RFC1123Z),
 			Items:       items,
 		},
 	}

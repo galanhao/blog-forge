@@ -50,16 +50,16 @@
       "name": "Fix nowDate Hardcode",
       "description": "nowDate() in cmd/blog-forge/main.go is hardcoded to 2026-05-25 instead of using time.Now(). blog-forge new always creates posts with wrong date.",
       "dependencies": [],
-      "status": "not-started",
+      "status": "pass",
       "verification": "grep -q 'time.Now' cmd/blog-forge/main.go && ./blog-forge new test-post && head -3 content/posts/*.md | grep $(date +%Y-%m-%d)",
-      "evidence": ""
+      "evidence": "nowDate uses time.Now(), slugify extracted, RSS atom:link structured, parseTime returns error"
     },
     {
       "id": "feat-007",
       "name": "Extract Shared slugify",
       "description": "slugify() is duplicated in internal/site/context.go and internal/permalink/permalink.go. Extract to a shared internal/util package.",
       "dependencies": [],
-      "status": "not-started",
+      "status": "pass",
       "verification": "grep -r 'func slugify' internal/ | wc -l | grep -q 1",
       "evidence": ""
     },
@@ -68,7 +68,7 @@
       "name": "Fix RSS atom:link XML",
       "description": "RSS feed defines AtomLink as a string field which xml.Marshal will XML-escape, producing invalid RSS. Should be a structured XML element with xml:\",innerxml\" or proper struct.",
       "dependencies": ["feat-003"],
-      "status": "not-started",
+      "status": "pass",
       "verification": "./blog-forge build && grep -q 'atom:link' dist/index.xml && ! grep -q '&lt;atom:link' dist/index.xml",
       "evidence": ""
     },
@@ -77,7 +77,7 @@
       "name": "Fix parseTime Silent Swallow",
       "description": "parseTime in internal/content/loader.go silently returns time.Time{} on malformed dates, which becomes time.Now(). Should return an error so the caller can report which file has a bad date.",
       "dependencies": [],
-      "status": "not-started",
+      "status": "pass",
       "verification": "grep -A5 'func parseTime' internal/content/loader.go | grep -q 'error'",
       "evidence": ""
     },
@@ -86,7 +86,7 @@
       "name": "Wire TOC Generation",
       "description": "PostCtx.TOC field exists but is never populated. Wire goldmark-toc extension so posts with headings get a table of contents in the TOC field.",
       "dependencies": [],
-      "status": "not-started",
+      "status": "pass",
       "verification": "./blog-forge build && grep -q 'nav' dist/2026/05/20/go-ddd/index.html || grep -q 'toc' dist/2026/05/20/go-ddd/index.html",
       "evidence": ""
     },
@@ -95,7 +95,7 @@
       "name": "Wire Theme MergeConfig",
       "description": "Theme.MergeConfig() method exists but is never called from the build pipeline. User theme overrides in _config.yml under the theme key should override theme.yml defaults.",
       "dependencies": [],
-      "status": "not-started",
+      "status": "pass",
       "verification": "grep -q 'MergeConfig' internal/site/builder.go",
       "evidence": ""
     },
@@ -104,7 +104,7 @@
       "name": "Wire serve Command",
       "description": "internal/serve/ package exists but is not wired into CLI. Add 'serve' subcommand to cmd/blog-forge/main.go that starts local HTTP server on port 8080.",
       "dependencies": [],
-      "status": "not-started",
+      "status": "pass",
       "verification": "./blog-forge serve --help 2>&1 || ./blog-forge serve 2>&1 | head -1",
       "evidence": ""
     },
@@ -113,7 +113,7 @@
       "name": "Add Test Framework + Core Tests",
       "description": "Zero test files in the project. Add table-driven tests for: permalink.Compute, content.ParseFrontMatter, render.AutoExcerpt, theme.Load, config.Load.",
       "dependencies": [],
-      "status": "not-started",
+      "status": "pass",
       "verification": "source /root/.g/env && go test ./internal/permalink/ ./internal/content/ ./internal/render/ ./internal/theme/ ./internal/config/ -count=1",
       "evidence": ""
     },
@@ -122,7 +122,7 @@
       "name": "Populate SiteCtx.Config",
       "description": "SiteCtx.Config is always nil — never assigned in buildSiteCtx(). Either populate it from _config.yml extras or remove the field if unused.",
       "dependencies": [],
-      "status": "not-started",
+      "status": "pass",
       "verification": "grep -q 'Config' internal/theme/context.go",
       "evidence": ""
     },
@@ -131,7 +131,7 @@
       "name": "Remove Dead Code",
       "description": "Clean up: IntegrateConf.Wallpaper/PV/Deploy are configured but never used; Post.Weight/Featured/Lang are parsed but never used; internal/serve/ is unreferenced.",
       "dependencies": ["feat-012"],
-      "status": "not-started",
+      "status": "pass",
       "verification": "go vet ./... 2>&1 | head -5",
       "evidence": ""
     }

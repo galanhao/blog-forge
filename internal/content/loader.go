@@ -76,11 +76,20 @@ func (l *Loader) parseFile(path string, fallbackLayout string) (*Post, error) {
 		layout = fallbackLayout
 	}
 
+	date, dateErr := parseTime(fm.Date)
+	if date.IsZero() {
+		if dateErr != nil {
+			fmt.Fprintf(os.Stderr, "warning: %s: %v, using current time\n", path, dateErr)
+		}
+		date = time.Now()
+	}
+	updated, _ := parseTime(fm.Updated)
+
 	post := &Post{
 		Title:      fm.Title,
 		Slug:       slugFromPath(path),
-		Date:       parseTime(fm.Date),
-		Updated:    parseTime(fm.Updated),
+		Date:       date,
+		Updated:    updated,
 		Tags:       fm.Tags,
 		Categories: fm.Categories,
 		Excerpt:    fm.Excerpt,
@@ -95,10 +104,6 @@ func (l *Loader) parseFile(path string, fallbackLayout string) (*Post, error) {
 		Weight:     fm.Weight,
 		Featured:   fm.Featured,
 		FilePath:   path,
-	}
-
-	if post.Date.IsZero() {
-		post.Date = time.Now()
 	}
 
 	return post, nil
@@ -119,9 +124,10 @@ func slugFromPath(path string) string {
 }
 
 // parseTime parses a time string in common formats.
-func parseTime(s string) time.Time {
+// Returns an error if the string is non-empty but matches no known format.
+func parseTime(s string) (time.Time, error) {
 	if s == "" {
-		return time.Time{}
+		return time.Time{}, nil
 	}
 
 	formats := []string{
@@ -134,10 +140,10 @@ func parseTime(s string) time.Time {
 
 	for _, f := range formats {
 		if t, err := time.Parse(f, s); err == nil {
-			return t
+			return t, nil
 		}
 	}
-	return time.Time{}
+	return time.Time{}, fmt.Errorf("unrecognized date format: %q", s)
 }
 
 // sortByDate sorts posts newest first.

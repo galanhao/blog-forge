@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/galanhao/blog-forge/internal/config"
 	"github.com/galanhao/blog-forge/internal/site"
+	"github.com/galanhao/blog-forge/internal/util"
 )
 
 const (
@@ -81,7 +83,7 @@ func runNew() error {
 }
 
 func createPost(title string) error {
-	slug := slugify(title)
+	slug := util.Slugify(title)
 	filename := fmt.Sprintf("content/posts/%s.md", slug)
 
 	tmpl := fmt.Sprintf(`---
@@ -103,25 +105,10 @@ cover_image: ""
 	return nil
 }
 
-func slugify(s string) string {
-	result := make([]rune, 0, len(s))
-	for _, r := range s {
-		if r >= 'a' && r <= 'z' || r >= '0' && r <= '9' {
-			result = append(result, r)
-		} else if r >= 'A' && r <= 'Z' {
-			result = append(result, r+32) // to lower
-		} else if r == ' ' || r == '_' {
-			result = append(result, '-')
-		} else if r >= 0x4e00 { // CJK characters - keep
-			result = append(result, r)
-		}
-	}
-	return string(result)
-}
-
 func nowDate() string {
+	now := time.Now()
 	return fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
-		2026, 5, 25, 0, 0, 0) // TODO: use time.Now()
+		now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
 }
 
 func runInit() error {

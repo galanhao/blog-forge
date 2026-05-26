@@ -7,6 +7,8 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/galanhao/blog-forge/internal/util"
 )
 
 // Format identifies a built-in permalink pattern.
@@ -106,16 +108,9 @@ func expandPattern(pattern, slug string, date time.Time, categories []string) st
 // firstCategory returns the first top-level category, or empty string.
 func firstCategory(categories []string) string {
 	if len(categories) > 0 {
-		return slugify(categories[0])
+		return util.Slugify(categories[0])
 	}
 	return ""
-}
-
-// slugify converts a category name to a URL-safe slug.
-func slugify(s string) string {
-	s = strings.ToLower(s)
-	s = strings.ReplaceAll(s, " ", "-")
-	return s
 }
 
 // joinWithPathRoot prepends the site root to the permalink path.
