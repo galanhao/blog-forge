@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+
+
+
+<html lang="zh-CN" data-theme="auto">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="robots" content="index, follow">
+    <title>Go 项目 DDD 实践 | galan&#39;s blog</title>
+    <meta name="description" content="从贫血模型到充血模型，如何在 Go 项目中落地 DDD。">
+    <meta name="author" content="galanhao">
+    <link rel="canonical" href="https://blog.galanhao.com/2026/05/20/go-ddd/">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="icon" href="/favicon.ico">
+</head>
+
+<body id="top">
+
+    <header class="header">
+        <nav class="header-nav">
+            <div class="logo">
+                <a href="/" accesskey="h" title="galan&#39;s blog (Alt + H)">
+                    galan&#39;s blog
+                </a>
+                <div class="logo-switches">
+                    <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)">
+                        <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                        <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <ul id="menu" class="menu">
+                
+                <li>
+                    <a href="/" title="首页">
+                        <span>首页</span>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="/archives/" title="归档">
+                        <span>归档</span>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="/about/" title="关于">
+                        <span>关于</span>
+                    </a>
+                </li>
+                
+            </ul>
+        </nav>
+    </header>
+    <main class="main">
+
+
+<article class="post-single">
+    <header class="post-header">
+        <h1 class="post-title">
+            Go 项目 DDD 实践
+        </h1>
+        <div class="post-meta">
+            <span>2026-05-20</span>
+            
+        </div>
+    </header>
+
+    
+    <figure class="entry-cover">
+        <img src="/assets/img/go-ddd.jpg" alt="Go 项目 DDD 实践" loading="lazy">
+    </figure>
+    
+
+    
+    
+    <details class="toc" open>
+        <summary accesskey="c" title="(Alt + C)">
+            <div class="details">展开目录</div>
+        </summary>
+        <div class="inner">
+            
+        </div>
+    </details>
+    
+
+    <div class="post-content">
+        <h2 id="heading">领域驱动设计的核心思想</h2>
+<p>DDD 不是框架，不是架构，而是一种<strong>建模思维方式</strong>。</p>
+<h3 id="heading-1">贫血模型的问题</h3>
+<pre style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="display:flex;"><span><span style="color:#57606a">// 贫血：数据和行为分离</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">type</span><span style="color:#fff"> </span><span style="color:#1f2328">User</span><span style="color:#fff"> </span><span style="color:#cf222e">struct</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">ID</span><span style="color:#fff">    </span><span style="color:#cf222e">string</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">Email</span><span style="color:#fff"> </span><span style="color:#cf222e">string</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#57606a">// 行为在外部 service 里</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">func</span><span style="color:#fff"> </span><span style="color:#6639ba">ChangeEmail</span><span style="color:#1f2328">(</span><span style="color:#1f2328">u</span><span style="color:#fff"> </span><span style="color:#0550ae">*</span><span style="color:#1f2328">User</span><span style="color:#1f2328">,</span><span style="color:#fff"> </span><span style="color:#1f2328">newEmail</span><span style="color:#fff"> </span><span style="color:#cf222e">string</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff"> </span><span style="color:#0550ae">...</span><span style="color:#fff"> </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre><h3 id="heading-2">充血模型的改进</h3>
+<pre style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="display:flex;"><span><span style="color:#57606a">// 充血：数据和行为内聚</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">type</span><span style="color:#fff"> </span><span style="color:#1f2328">User</span><span style="color:#fff"> </span><span style="color:#cf222e">struct</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">id</span><span style="color:#fff">    </span><span style="color:#cf222e">string</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">email</span><span style="color:#fff"> </span><span style="color:#cf222e">string</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#cf222e">func</span><span style="color:#fff"> </span><span style="color:#1f2328">(</span><span style="color:#1f2328">u</span><span style="color:#fff"> </span><span style="color:#0550ae">*</span><span style="color:#1f2328">User</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#6639ba">ChangeEmail</span><span style="color:#1f2328">(</span><span style="color:#1f2328">newEmail</span><span style="color:#fff"> </span><span style="color:#cf222e">string</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#cf222e">error</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">if</span><span style="color:#fff"> </span><span style="color:#1f2328">!</span><span style="color:#6639ba">isValidEmail</span><span style="color:#1f2328">(</span><span style="color:#1f2328">newEmail</span><span style="color:#1f2328">)</span><span style="color:#fff"> </span><span style="color:#1f2328">{</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">        </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#1f2328">ErrInvalidEmail</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#1f2328">u</span><span style="color:#1f2328">.</span><span style="color:#1f2328">email</span><span style="color:#fff"> </span><span style="color:#1f2328">=</span><span style="color:#fff"> </span><span style="color:#1f2328">newEmail</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#fff">    </span><span style="color:#cf222e">return</span><span style="color:#fff"> </span><span style="color:#cf222e">nil</span><span style="color:#fff">
+</span></span></span><span style="display:flex;"><span><span style="color:#1f2328">}</span><span style="color:#fff">
+</span></span></span></code></pre><h2 id="go-">Go 中的聚合根</h2>
+<p>聚合根是 DDD 中最关键的概念之一。它定义了一致性边界。</p>
+<h2 id="heading-3">总结</h2>
+<p>DDD 在 Go 中完全可以落地，关键是<strong>建模</strong>而非框架。</p>
+
+    </div>
+
+    <footer class="post-footer">
+        <ul class="post-tags">
+            
+            <li><a href="/tags/go/">Go</a></li>
+            
+            <li><a href="/tags/ddd/">DDD</a></li>
+            
+            <li><a href="/tags/%e6%9e%b6%e6%9e%84/">架构</a></li>
+            
+        </ul>
+
+        
+        <nav class="paginav">
+            <a class="prev" href="/2026/05/24/hello-world/">
+                <span class="title">« 上一篇</span>
+                <br>
+                <span>Hello World</span>
+            </a>
+        
+        
+        </nav>
+        
+    </footer>
+
+    
+    <div id="giscus-container" class="comments"></div>
+    
+</article>
+
+
+    </main>
+    <footer class="footer">
+        <span>&copy; 2026 <a href="/">galan&#39;s blog</a></span>
+        <span>·</span>
+        <span>Powered by blog-builder</span>
+    </footer>
+    <a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>
+    </a>
+    <script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const sp = localStorage.getItem("menu-scroll-position");
+        if (sp) menu.scrollLeft = parseInt(sp, 10);
+        menu.onscroll = function () { localStorage.setItem("menu-scroll-position", menu.scrollLeft); }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector('[id=\'' + decodeURIComponent(id) + '\']').scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector('[id=\'' + decodeURIComponent(id) + '\']').scrollIntoView();
+            }
+            if (id === "top") { history.replaceState(null, null, " "); } else { history.pushState(null, null, '#' + id); }
+        });
+    });
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > window.innerHeight || document.documentElement.scrollTop > window.innerHeight) {
+            toplink.classList.remove("hidden");
+        } else { toplink.classList.add("hidden"); }
+    };
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light'; localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark'; localStorage.setItem("pref-theme", 'dark');
+        }
+    });
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    }
+    </script>
+</body>
+</html>
+
