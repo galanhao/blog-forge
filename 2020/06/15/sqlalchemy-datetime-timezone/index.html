@@ -1,0 +1,213 @@
+
+<!DOCTYPE html>
+
+
+
+<html lang="zh-CN" data-theme="auto">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="robots" content="index, follow">
+    <title>当SQLAlchemy遇上时区：datetime naive vs aware踩坑记 | galan&#39;s blog</title>
+    <meta name="description" content="使用SQLAlchemy更新记录时遇到&#34;can&#39;t compare offset-naive and offset-aware datetimes&#34;报错，深入排查后发现是数据库datetime类型不支持时区信息，导致读出的时间从aware变成了naive。">
+    <meta name="author" content="galanhao">
+    <link rel="canonical" href="https://blog.galanhao.com/2020/06/15/sqlalchemy-datetime-timezone/">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="icon" href="/favicon.ico">
+</head>
+
+<body id="top">
+
+    <header class="header">
+        <nav class="header-nav">
+            <div class="logo">
+                <a href="/" accesskey="h" title="galan&#39;s blog (Alt + H)">
+                    galan&#39;s blog
+                </a>
+                <div class="logo-switches">
+                    <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)">
+                        <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                        <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <ul id="menu" class="menu">
+                
+                <li>
+                    <a href="/" title="首页">
+                        <span>首页</span>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="/archives/" title="归档">
+                        <span>归档</span>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="/about/" title="关于">
+                        <span>关于</span>
+                    </a>
+                </li>
+                
+            </ul>
+        </nav>
+    </header>
+    <main class="main">
+
+
+<article class="post-single">
+    <header class="post-header">
+        <h1 class="post-title">
+            当SQLAlchemy遇上时区：datetime naive vs aware踩坑记
+        </h1>
+        <div class="post-meta">
+            <span>2020-06-15</span>
+            
+        </div>
+    </header>
+
+    
+
+    
+    
+    <details class="toc" open>
+        <summary accesskey="c" title="(Alt + C)">
+            <div class="details">展开目录</div>
+        </summary>
+        <div class="inner">
+            
+        </div>
+    </details>
+    
+
+    <div class="post-content">
+        <h2 id="heading">现象</h2>
+<p>在归档系统中，通过运营平台对&quot;系统备份&quot;下的&quot;备份位置&quot;进行任意修改操作时，API 会抛出 500 错误，而且信息根本无法被修改。</p>
+<h2 id="heading-1">问题分析</h2>
+<p>查看日志可以发现，报错信息为：</p>
+<blockquote>
+<p><em>can't compare offset-naive and offset-aware datetimes</em></p>
+</blockquote>
+<p>查阅 Python 官方文档（https://docs.python.org/3/library/datetime.html）可知，Date 和 Time 根据其是否携带时区信息（timezone）可以分为 <strong>Aware</strong> 和 <strong>Naive</strong> 两种：</p>
+<ul>
+<li><strong>Aware</strong>：携带时区信息</li>
+<li><strong>Naive</strong>：不携带时区信息，其使用的具体是 UTC、本地时区还是其他时区，由调用程序自行约定</li>
+</ul>
+<p>根据报错信息可以确定，问题的根源在于 <code>updated_at</code> 字段赋值时，原先的值和后续赋予的值一个是 Naive（<code>datetime.datetime(2022, 5, 18, 7, 39, 15)</code>），另一个是 Aware（<code>datetime.datetime(2022, 5, 18, 7, 48, 11, tzinfo=&lt;UTC&gt;)</code>）。</p>
+<p>通过打点调试发现，<code>updated_at</code> 原先的值为 Naive，而后续赋予的值为 Aware。SQLAlchemy 在执行 Update 操作时，会比较原先的值和新赋予的值，如果不一致则更新（通过阅读报错对应的源码可以印证这一逻辑）。</p>
+<p>奇怪的是，阅读代码逻辑后发现，<code>updated_at</code> 从创建到更新使用的都是同一个方法生成的 <strong>Aware</strong> 时间，但再次用 SQLAlchemy 读出时，却变成了 Naive 时间。</p>
+<h2 id="heading-2">追根溯源</h2>
+<p>在 SQLAlchemy 的官方 Issue（https://github.com/sqlalchemy/sqlalchemy/issues/1462）中找到了类似的问题，作者也提到并不是所有数据库都能支持 Aware 时间的存储。</p>
+<p>进一步查阅 MariaDB 官方文档（https://mariadb.com/kb/en/datetime/#time-zones），其中有明确说明：</p>
+<blockquote>
+<p>If a column uses the <code>DATETIME</code> data type, then any inserted values are stored as-is, so no automatic time zone conversions are performed.</p>
+</blockquote>
+<p>也就是说，MariaDB 的 <code>DATETIME</code> 类型是<strong>不支持</strong> Aware 时间格式的——时区信息在写入时会被丢弃。</p>
+<h2 id="heading-3">解决方案</h2>
+<p>既然数据库层面的 <code>DATETIME</code> 类型不支持时区，那么时区问题就需要在代码层面解决：</p>
+<ol>
+<li>
+<p><strong>统一返回 Naive 时间</strong>：因为数据库获取当前时间统一使用 <code>lich.utils.tz.py</code> 下的 <code>utc_now</code> 函数，直接让该函数返回 <code>datetime.datetime.utcnow()</code> 即可，这样返回的是不带时区信息的 Datetime 对象，数据库统一存储 UTC 时间，不会再出现 naive 与 aware 混用的问题。</p>
+</li>
+<li>
+<p><strong>使用更标准的方法</strong>：基于上面的思路，也可以选用更具规范性的 <code>oslo_utils.timeutils.utcnow()</code>，同样能达到效果。</p>
+</li>
+</ol>
+<h2 id="heading-4">扩展</h2>
+<p>后续在定义数据库 Model 时，不必在每个 Model 中手动添加 <code>updated_at</code> 和 <code>created_at</code>，可以直接继承 <code>oslo_db.sqlalchemy.models.TimestampMixin</code>，省去重复劳动。</p>
+
+    </div>
+
+    <footer class="post-footer">
+        <ul class="post-tags">
+            
+            <li><a href="/tags/sqlalchemy/">SQLAlchemy</a></li>
+            
+            <li><a href="/tags/mysql/">MySQL</a></li>
+            
+            <li><a href="/tags/%e6%97%b6%e5%8c%ba/">时区</a></li>
+            
+        </ul>
+
+        
+        <nav class="paginav">
+            <a class="prev" href="/2020/07/10/ansible-runner-ghost-variable/">
+                <span class="title">« 上一篇</span>
+                <br>
+                <span>ansible-runner private_data_dir引发的幽灵变量问题</span>
+            </a>
+        
+        
+        
+            <a class="next" href="/2019/10/01/python-id-card-validator/">
+                <span class="title">下一篇 »</span>
+                <br>
+                <span>Python实现身份证号码校验：结构与算法解析</span>
+            </a>
+        </nav>
+        
+    </footer>
+
+    
+    <div id="giscus-container" class="comments"></div>
+    
+</article>
+
+
+    </main>
+    <footer class="footer">
+        <span>&copy; 2026 <a href="/">galan&#39;s blog</a></span>
+        <span>·</span>
+        <span>Powered by blog-builder</span>
+    </footer>
+    <a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>
+    </a>
+    <script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const sp = localStorage.getItem("menu-scroll-position");
+        if (sp) menu.scrollLeft = parseInt(sp, 10);
+        menu.onscroll = function () { localStorage.setItem("menu-scroll-position", menu.scrollLeft); }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector('[id=\'' + decodeURIComponent(id) + '\']').scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector('[id=\'' + decodeURIComponent(id) + '\']').scrollIntoView();
+            }
+            if (id === "top") { history.replaceState(null, null, " "); } else { history.pushState(null, null, '#' + id); }
+        });
+    });
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > window.innerHeight || document.documentElement.scrollTop > window.innerHeight) {
+            toplink.classList.remove("hidden");
+        } else { toplink.classList.add("hidden"); }
+    };
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light'; localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark'; localStorage.setItem("pref-theme", 'dark');
+        }
+    });
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    }
+    </script>
+</body>
+</html>
+

@@ -10,15 +10,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="robots" content="index, follow">
-    <title>galan&#39;s blog</title>
-    <meta name="description" content="技术与生活">
+    <title>博客上线了 | galan&#39;s blog</title>
+    <meta name="description" content="个人博客正式上线，使用 blog-forge 构建">
     <meta name="author" content="galanhao">
-    <link rel="canonical" href="https://blog.galanhao.com/">
+    <link rel="canonical" href="https://blog.galanhao.com/2026/05/27/blog-online/">
     <link rel="stylesheet" href="/assets/css/main.css">
     <link rel="icon" href="/favicon.ico">
 </head>
 
-<body class="list" id="top">
+<body id="top">
 
     <header class="header">
         <nav class="header-nav">
@@ -59,145 +59,69 @@
     <main class="main">
 
 
-
-
-
-
-<article class="first-entry home-info">
-    <header class="entry-header">
-        <h1></h1>
-    </header>
-    <div class="entry-content">
-        <p></p>
-    </div>
-</article>
-
-
-<div class="post-list">
-
-
-<article class="first-entry">
-
-    
-    <header class="entry-header">
-        <h2 class="entry-hint-parent">
+<article class="post-single">
+    <header class="post-header">
+        <h1 class="post-title">
             博客上线了
-        </h2>
+        </h1>
+        <div class="post-meta">
+            <span>2026-05-27</span>
+            
+        </div>
     </header>
+
     
-    <div class="entry-content">
-        <p>个人博客正式上线，使用 blog-forge 构建</p>
+
+    
+    
+    <details class="toc" open>
+        <summary accesskey="c" title="(Alt + C)">
+            <div class="details">展开目录</div>
+        </summary>
+        <div class="inner">
+            
+        </div>
+    </details>
+    
+
+    <div class="post-content">
+        <p>新的博客终于上线了。</p>
+<p>之前用过不少博客平台，但总觉得少了点什么。要么定制性不够，要么依赖太多。这次用自己写的 <strong>blog-forge</strong> 来构建，Markdown 写文章，推送到 GitHub，Actions 自动构建部署到 GitHub Pages，一切都干净利落。</p>
+<h2 id="blog-forge-">blog-forge 的特点</h2>
+<ul>
+<li><strong>纯 Go 实现</strong>：一个二进制文件，没有 Node.js 依赖</li>
+<li><strong>自定义主题规范</strong>：不绑定任何平台，可以适配任何优秀主题</li>
+<li><strong>文章资源目录</strong>：每篇文章可以有自己的图片、视频、音频资源</li>
+<li><strong>GitHub Actions 集成</strong>：推送即部署，零运维</li>
+<li><strong>静态优先</strong>：纯静态输出，动态能力按需叠加</li>
+</ul>
+<p>接下来的计划是慢慢把之前的笔记整理出来，放到这里来。</p>
+
     </div>
-    
-    <footer class="entry-footer">
-        <span>2026-05-27</span>
+
+    <footer class="post-footer">
+        <ul class="post-tags">
+            
+            <li><a href="/tags/%e9%9a%8f%e7%ac%94/">随笔</a></li>
+            
+        </ul>
+
+        
+        
+        <nav class="paginav">
+            <a class="next" href="/2026/05/25/multimedia-demo/">
+                <span class="title">下一篇 »</span>
+                <br>
+                <span>多媒体内容演示</span>
+            </a>
+        </nav>
+        
     </footer>
-    <a class="entry-link" aria-label="post link to 博客上线了" href="/2026/05/27/blog-online/"></a>
+
+    
+    <div id="giscus-container" class="comments"></div>
+    
 </article>
-
-
-<article class="post-entry">
-
-    
-    <header class="entry-header">
-        <h2 class="entry-hint-parent">
-            多媒体内容演示
-        </h2>
-    </header>
-    
-    <div class="entry-content">
-        <p>展示 blog-forge 对图片、视频、音频等多媒体内容的完整支持</p>
-    </div>
-    
-    <footer class="entry-footer">
-        <span>2026-05-25</span>
-    </footer>
-    <a class="entry-link" aria-label="post link to 多媒体内容演示" href="/2026/05/25/multimedia-demo/"></a>
-</article>
-
-
-<article class="post-entry">
-
-    
-    <header class="entry-header">
-        <h2 class="entry-hint-parent">
-            用tooz实现Python分布式锁：从选型到实现
-        </h2>
-    </header>
-    
-    <div class="entry-content">
-        <p>在Slark项目中，多个Agent节点需要串行执行Ansible命令，借助OpenStack的分布式协调库tooz实现基于Redis的分布式锁，通过装饰器优雅地控制并发。</p>
-    </div>
-    
-    <footer class="entry-footer">
-        <span>2020-08-20</span>
-    </footer>
-    <a class="entry-link" aria-label="post link to 用tooz实现Python分布式锁：从选型到实现" href="/2020/08/20/python-distributed-lock-tooz/"></a>
-</article>
-
-
-<article class="post-entry">
-
-    
-    <header class="entry-header">
-        <h2 class="entry-hint-parent">
-            ansible-runner private_data_dir引发的幽灵变量问题
-        </h2>
-    </header>
-    
-    <div class="entry-content">
-        <p>使用ansible-runner执行备份时，命令行正常但Agent执行报错，最终定位到private_data_dir目录下env/extravars文件不会被更新，导致已被删除的变量像幽灵一样残留在后续执行中。</p>
-    </div>
-    
-    <footer class="entry-footer">
-        <span>2020-07-10</span>
-    </footer>
-    <a class="entry-link" aria-label="post link to ansible-runner private_data_dir引发的幽灵变量问题" href="/2020/07/10/ansible-runner-ghost-variable/"></a>
-</article>
-
-
-<article class="post-entry">
-
-    
-    <header class="entry-header">
-        <h2 class="entry-hint-parent">
-            当SQLAlchemy遇上时区：datetime naive vs aware踩坑记
-        </h2>
-    </header>
-    
-    <div class="entry-content">
-        <p>使用SQLAlchemy更新记录时遇到&#34;can&#39;t compare offset-naive and offset-aware datetimes&#34;报错，深入排查后发现是数据库datetime类型不支持时区信息，导致读出的时间从aware变成了naive。</p>
-    </div>
-    
-    <footer class="entry-footer">
-        <span>2020-06-15</span>
-    </footer>
-    <a class="entry-link" aria-label="post link to 当SQLAlchemy遇上时区：datetime naive vs aware踩坑记" href="/2020/06/15/sqlalchemy-datetime-timezone/"></a>
-</article>
-
-
-<article class="post-entry">
-
-    
-    <header class="entry-header">
-        <h2 class="entry-hint-parent">
-            Python实现身份证号码校验：结构与算法解析
-        </h2>
-    </header>
-    
-    <div class="entry-content">
-        <p>解析中国二代身份证号码的结构组成，给出基于ISO 7064:1983.MOD 11-2校验码算法的Python实现，同时附带JavaScript版本供前端使用。</p>
-    </div>
-    
-    <footer class="entry-footer">
-        <span>2019-10-01</span>
-    </footer>
-    <a class="entry-link" aria-label="post link to Python实现身份证号码校验：结构与算法解析" href="/2019/10/01/python-id-card-validator/"></a>
-</article>
-
-</div>
-
-
 
 
     </main>

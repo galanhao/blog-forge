@@ -1,0 +1,395 @@
+
+<!DOCTYPE html>
+
+
+
+<html lang="zh-CN" data-theme="auto">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="robots" content="index, follow">
+    <title>用tooz实现Python分布式锁：从选型到实现 | galan&#39;s blog</title>
+    <meta name="description" content="在Slark项目中，多个Agent节点需要串行执行Ansible命令，借助OpenStack的分布式协调库tooz实现基于Redis的分布式锁，通过装饰器优雅地控制并发。">
+    <meta name="author" content="galanhao">
+    <link rel="canonical" href="https://blog.galanhao.com/2020/08/20/python-distributed-lock-tooz/">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="icon" href="/favicon.ico">
+</head>
+
+<body id="top">
+
+    <header class="header">
+        <nav class="header-nav">
+            <div class="logo">
+                <a href="/" accesskey="h" title="galan&#39;s blog (Alt + H)">
+                    galan&#39;s blog
+                </a>
+                <div class="logo-switches">
+                    <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)">
+                        <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                        <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <ul id="menu" class="menu">
+                
+                <li>
+                    <a href="/" title="首页">
+                        <span>首页</span>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="/archives/" title="归档">
+                        <span>归档</span>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="/about/" title="关于">
+                        <span>关于</span>
+                    </a>
+                </li>
+                
+            </ul>
+        </nav>
+    </header>
+    <main class="main">
+
+
+<article class="post-single">
+    <header class="post-header">
+        <h1 class="post-title">
+            用tooz实现Python分布式锁：从选型到实现
+        </h1>
+        <div class="post-meta">
+            <span>2020-08-20</span>
+            
+        </div>
+    </header>
+
+    
+
+    
+    
+    <details class="toc" open>
+        <summary accesskey="c" title="(Alt + C)">
+            <div class="details">展开目录</div>
+        </summary>
+        <div class="inner">
+            
+        </div>
+    </details>
+    
+
+    <div class="post-content">
+        <h2 id="heading">现象</h2>
+<p>在 Slark API 向 Worker 发送执行 Ansible 命令的请求时，希望这些任务不要并行执行。最终执行 Ansible 的节点为 Agent 节点，而 Agent 可能被部署多个实例，因此需要使用<strong>分布式锁</strong>来控制执行规则。</p>
+<h2 id="heading-1">技术选型</h2>
+<p>分布式锁的实现选用 <strong>tooz</strong>，它是 OpenStack 的分布式管理工具库。</p>
+<h3 id="tooz-">tooz 组件功能</h3>
+<p><strong>Tooz 项目旨在通过提供协调 API 帮助开发人员构建分布式应用程序</strong>，集中最常见的分布式原语，如组成员协议、锁定服务和领导者选举。</p>
+<p>Tooz 是一个 Python 库，提供了标准的 coordination API。最初由 eNovance 的几位工程师编写，其主要目标是解决分布式系统的通用问题，比如节点管理、主节点选举以及分布式锁等。Tooz 抽象了高级接口，支持对接十多种 DLM 驱动，比如 ZooKeeper、Redis、MySQL、Etcd、Consul 等。</p>
+<p>在 Slark 项目中主要使用 tooz 提供的分布式锁，从而允许分布式节点获取和释放锁来实现同步，以此解决多个 Agent 进程的并发问题。</p>
+<h2 id="heading-2">锁的粒度</h2>
+<p>在 Slark 项目中，锁的最大粒度应该是<strong>集群</strong>。不同集群之间不会相互干扰。</p>
+<p>而对于 Agent 进程，其天然最大粒度就是集群，因此只需要控制好其内部函数锁的粒度即可。</p>
+<p>在需要控制的函数中，其操作的资源主要有：</p>
+<ul>
+<li><strong>Slurm 配置文件</strong></li>
+<li><strong>Linux 用户</strong></li>
+</ul>
+<p>这两个资源之间没有很强的关联，可以并行执行。</p>
+<p>需要注意的是，Slurm 的配置文件需要被控制成串行——同一时刻只能有一个刷配置的任务在执行。此外，用户的创建、删除和修改密码也需要加锁串行执行，以防止操作顺序被打乱，保证执行顺序的绝对正确。</p>
+<h2 id="heading-3">实现</h2>
+<p>当前 Agent 中 Ansible 部分的代码结构如下：</p>
+<pre style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">AnsibleProvision</span><span style="color:#1f2328">(</span>base<span style="color:#0550ae">.</span>BaseProvision<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>extraVars <span style="color:#0550ae">=</span> <span style="color:#1f2328">{}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>playbooks_dir <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>abspath<span style="color:#1f2328">(</span><span style="color:#953800">__file__</span><span style="color:#1f2328">)</span><span style="color:#0550ae">.</span>rsplit<span style="color:#1f2328">(</span>os<span style="color:#0550ae">.</span>sep<span style="color:#1f2328">,</span> <span style="color:#0550ae">1</span><span style="color:#1f2328">)[</span><span style="color:#0550ae">0</span><span style="color:#1f2328">],</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;playbooks&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> <span style="color:#0550ae">not</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>exists<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>playbooks_dir<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            os<span style="color:#0550ae">.</span>makedirs<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>playbooks_dir<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>inventory <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>playbooks_dir<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;inventory&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6639ba">super</span><span style="color:#1f2328">(</span>AnsibleProvision<span style="color:#1f2328">,</span> <span style="color:#6a737d">self</span><span style="color:#1f2328">)</span><span style="color:#0550ae">.</span><span style="color:#6639ba">__init__</span><span style="color:#1f2328">(</span><span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">_run</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> extra_vars<span style="color:#0550ae">=</span><span style="color:#cf222e">None</span><span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> <span style="color:#0a3069">&#34;inventory&#34;</span> <span style="color:#0550ae">not</span> <span style="color:#0550ae">in</span> kwargs<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            kwargs<span style="color:#1f2328">[</span><span style="color:#0a3069">&#34;inventory&#34;</span><span style="color:#1f2328">]</span> <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>inventory
+</span></span><span style="display:flex;"><span>        _extra_vars <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>extraVars<span style="color:#0550ae">.</span>copy<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> extra_vars<span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            _extra_vars<span style="color:#0550ae">.</span>update<span style="color:#1f2328">(</span>extra_vars<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#0550ae">=</span> ansible_runner<span style="color:#0550ae">.</span>run<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            extravars<span style="color:#0550ae">=</span>_extra_vars<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">**</span>kwargs
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        response<span style="color:#0550ae">.</span>failed_reasons <span style="color:#0550ae">=</span> collect_response_failed_list<span style="color:#1f2328">(</span>response<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> response
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">refresh_inventory</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> inventory<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        provision_utils<span style="color:#0550ae">.</span>refresh_inventory<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>inventory<span style="color:#1f2328">,</span> inventory<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">run_playbook</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> playbook<span style="color:#1f2328">,</span> extra_vars<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        LOG<span style="color:#0550ae">.</span>debug<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;run playbook: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">, extra_vars: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">&#34;</span><span style="color:#0550ae">.</span>format<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            playbook<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            extra_vars
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>_run<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            extra_vars<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            playbook<span style="color:#0550ae">=</span>playbook<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0550ae">**</span>kwargs
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">if</span> response<span style="color:#0550ae">.</span>status <span style="color:#0550ae">==</span> <span style="color:#0a3069">&#34;failed&#34;</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>            LOG<span style="color:#0550ae">.</span>error<span style="color:#1f2328">(</span>collect_response_failed_info<span style="color:#1f2328">(</span>response<span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> response
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">check</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        LOG<span style="color:#0550ae">.</span>debug<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;[ansible] check node status&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>_run<span style="color:#1f2328">(</span>module<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;ping&#34;</span><span style="color:#1f2328">,</span> host_pattern<span style="color:#0550ae">=</span><span style="color:#0a3069">&#34;all&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> response
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">load_config</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> cluster_name<span style="color:#1f2328">,</span> nodes<span style="color:#1f2328">,</span> partitions<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        LOG<span style="color:#0550ae">.</span>debug<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;ansible driver load_config :</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#0a3069">&#34;cluster_name: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#0a3069">&#34;nodes: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#0a3069">&#34;partitions: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">&#34;</span><span style="color:#0550ae">.</span>format<span style="color:#1f2328">(</span>cluster_name<span style="color:#1f2328">,</span> nodes<span style="color:#1f2328">,</span> partitions<span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        extra_vars <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;cluster_name&#34;</span><span style="color:#1f2328">:</span> cluster_name<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;nodes&#34;</span><span style="color:#1f2328">:</span> nodes<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;partitions&#34;</span><span style="color:#1f2328">:</span> partitions
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        _playbook <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>playbooks_dir<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                                 <span style="color:#0a3069">&#34;load_slurm_config.yaml&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>run_playbook<span style="color:#1f2328">(</span>_playbook<span style="color:#1f2328">,</span> extra_vars<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> response
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">create_users</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> users<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        LOG<span style="color:#0550ae">.</span>debug<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;[ansible] create user&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>run_playbook<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            playbook<span style="color:#0550ae">=</span>os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>playbooks_dir<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;create_user.yaml&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>            extra_vars<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#34;users&#34;</span><span style="color:#1f2328">:</span> users
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> response
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">delete_users</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> users<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        LOG<span style="color:#0550ae">.</span>debug<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;[ansible] delete user&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>run_playbook<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            playbook<span style="color:#0550ae">=</span>os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>playbooks_dir<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;delete_user.yaml&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>            extra_vars<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#34;users&#34;</span><span style="color:#1f2328">:</span> users
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> response
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">set_user_password</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> username<span style="color:#1f2328">,</span> password<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        LOG<span style="color:#0550ae">.</span>debug<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;[ansible] set user password&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>run_playbook<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            playbook<span style="color:#0550ae">=</span>os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>playbooks_dir<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;set_user_password.yaml&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>            extra_vars<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#34;username&#34;</span><span style="color:#1f2328">:</span> username<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#34;password&#34;</span><span style="color:#1f2328">:</span> password
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> response
+</span></span></code></pre><p>Agent 本身作用的范围只是自己所管理的单个集群。基于此，可以这样编写一个 lock 装饰器，将需要互斥的函数变为串行执行：</p>
+<pre style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">oslo_utils</span> <span style="color:#cf222e">import</span> reflection
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">from</span> <span style="color:#24292e">tooz</span> <span style="color:#cf222e">import</span> coordination
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>coordinator <span style="color:#0550ae">=</span> coordination<span style="color:#0550ae">.</span>get_coordinator<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>    CONF<span style="color:#0550ae">.</span>coordination<span style="color:#0550ae">.</span>backend_url<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>    uuidutils<span style="color:#0550ae">.</span>generate_uuid<span style="color:#1f2328">()</span><span style="color:#0550ae">.</span>encode<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;ascii&#39;</span><span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>coordinator<span style="color:#0550ae">.</span>start<span style="color:#1f2328">(</span>start_heart<span style="color:#0550ae">=</span><span style="color:#cf222e">True</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#cf222e">def</span> <span style="color:#6639ba">lock</span><span style="color:#1f2328">(</span>name<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">wrap</span><span style="color:#1f2328">(</span>f<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#0550ae">@functools.wraps</span><span style="color:#1f2328">(</span>f<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">def</span> <span style="color:#6639ba">inner</span><span style="color:#1f2328">(</span><span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>            _lock <span style="color:#0550ae">=</span> coordinator<span style="color:#0550ae">.</span>get_lock<span style="color:#1f2328">(</span>name<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            t1 <span style="color:#0550ae">=</span> timeutils<span style="color:#0550ae">.</span>now<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>            t2 <span style="color:#0550ae">=</span> <span style="color:#cf222e">None</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">try</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#cf222e">with</span> _lock<span style="color:#0550ae">.</span>acquire<span style="color:#1f2328">(</span>blocking<span style="color:#0550ae">=</span><span style="color:#cf222e">False</span><span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>                    t2 <span style="color:#0550ae">=</span> timeutils<span style="color:#0550ae">.</span>now<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>                    LOG<span style="color:#0550ae">.</span>debug<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;Lock &#34;</span><span style="color:#0a3069">%(name)s</span><span style="color:#0a3069">&#34; acquired by &#34;</span><span style="color:#0a3069">%(function)s</span><span style="color:#0a3069">&#34; :: &#39;</span>
+</span></span><span style="display:flex;"><span>                              <span style="color:#0a3069">&#39;waited </span><span style="color:#0a3069">%(wait_secs)0.3f</span><span style="color:#0a3069">s&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                              <span style="color:#1f2328">{</span><span style="color:#0a3069">&#39;name&#39;</span><span style="color:#1f2328">:</span> name<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                               <span style="color:#0a3069">&#39;function&#39;</span><span style="color:#1f2328">:</span> reflection<span style="color:#0550ae">.</span>get_callable_name<span style="color:#1f2328">(</span>f<span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>                               <span style="color:#0a3069">&#39;wait_secs&#39;</span><span style="color:#1f2328">:</span> <span style="color:#1f2328">(</span>t2 <span style="color:#0550ae">-</span> t1<span style="color:#1f2328">)})</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#cf222e">return</span> f<span style="color:#1f2328">(</span><span style="color:#0550ae">*</span>args<span style="color:#1f2328">,</span> <span style="color:#0550ae">**</span>kwargs<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#cf222e">finally</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                t3 <span style="color:#0550ae">=</span> timeutils<span style="color:#0550ae">.</span>now<span style="color:#1f2328">()</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#cf222e">if</span> t2 <span style="color:#0550ae">is</span> <span style="color:#cf222e">None</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                    held_secs <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;N/A&#34;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#cf222e">else</span><span style="color:#1f2328">:</span>
+</span></span><span style="display:flex;"><span>                    held_secs <span style="color:#0550ae">=</span> <span style="color:#0a3069">&#34;</span><span style="color:#0a3069">%0.3f</span><span style="color:#0a3069">s&#34;</span> <span style="color:#0550ae">%</span> <span style="color:#1f2328">(</span>t3 <span style="color:#0550ae">-</span> t2<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>                LOG<span style="color:#0550ae">.</span>debug<span style="color:#1f2328">(</span><span style="color:#0a3069">&#39;Lock &#34;</span><span style="color:#0a3069">%(name)s</span><span style="color:#0a3069">&#34; released by &#34;</span><span style="color:#0a3069">%(function)s</span><span style="color:#0a3069">&#34; :: held &#39;</span>
+</span></span><span style="display:flex;"><span>                          <span style="color:#0a3069">&#39;</span><span style="color:#0a3069">%(held_secs)s</span><span style="color:#0a3069">&#39;</span><span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                          <span style="color:#1f2328">{</span><span style="color:#0a3069">&#39;name&#39;</span><span style="color:#1f2328">:</span> name<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                           <span style="color:#0a3069">&#39;function&#39;</span><span style="color:#1f2328">:</span> reflection<span style="color:#0550ae">.</span>get_callable_name<span style="color:#1f2328">(</span>f<span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>                           <span style="color:#0a3069">&#39;held_secs&#39;</span><span style="color:#1f2328">:</span> held_secs<span style="color:#1f2328">})</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> inner
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">return</span> wrap
+</span></span></code></pre><h2 id="heading-4">使用</h2>
+<p>在需要加锁的方法上添加装饰器即可，锁的名称区分不同资源：</p>
+<pre style="background-color:#f7f7f7;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code><span style="display:flex;"><span><span style="color:#cf222e">class</span> <span style="color:#1f2328">AnsibleProvision</span><span style="color:#1f2328">(</span>base<span style="color:#0550ae">.</span>BaseProvision<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">......</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">@lock</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;config&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">load_config</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> cluster_name<span style="color:#1f2328">,</span> nodes<span style="color:#1f2328">,</span> partitions<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        LOG<span style="color:#0550ae">.</span>debug<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;ansible driver load_config :</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#0a3069">&#34;cluster_name: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#0a3069">&#34;nodes: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">\n</span><span style="color:#0a3069">&#34;</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#0a3069">&#34;partitions: </span><span style="color:#0a3069">{}</span><span style="color:#0a3069">&#34;</span><span style="color:#0550ae">.</span>format<span style="color:#1f2328">(</span>cluster_name<span style="color:#1f2328">,</span> nodes<span style="color:#1f2328">,</span> partitions<span style="color:#1f2328">))</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        extra_vars <span style="color:#0550ae">=</span> <span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;cluster_name&#34;</span><span style="color:#1f2328">:</span> cluster_name<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;nodes&#34;</span><span style="color:#1f2328">:</span> nodes<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#0a3069">&#34;partitions&#34;</span><span style="color:#1f2328">:</span> partitions
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        _playbook <span style="color:#0550ae">=</span> os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>playbooks_dir<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                                 <span style="color:#0a3069">&#34;load_slurm_config.yaml&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>run_playbook<span style="color:#1f2328">(</span>_playbook<span style="color:#1f2328">,</span> extra_vars<span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> response
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">@lock</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;user&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">create_users</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> users<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        LOG<span style="color:#0550ae">.</span>debug<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;[ansible] create user&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>run_playbook<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            playbook<span style="color:#0550ae">=</span>os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>playbooks_dir<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;create_user.yaml&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>            extra_vars<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#34;users&#34;</span><span style="color:#1f2328">:</span> users
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> response
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">@lock</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;user&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">delete_users</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> users<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        LOG<span style="color:#0550ae">.</span>debug<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;[ansible] delete user&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>run_playbook<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            playbook<span style="color:#0550ae">=</span>os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>playbooks_dir<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;delete_user.yaml&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>            extra_vars<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#34;users&#34;</span><span style="color:#1f2328">:</span> users
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> response
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0550ae">@lock</span><span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;user&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#cf222e">def</span> <span style="color:#6639ba">set_user_password</span><span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#1f2328">,</span> username<span style="color:#1f2328">,</span> password<span style="color:#1f2328">):</span>
+</span></span><span style="display:flex;"><span>        LOG<span style="color:#0550ae">.</span>debug<span style="color:#1f2328">(</span><span style="color:#0a3069">&#34;[ansible] set user password&#34;</span><span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        response <span style="color:#0550ae">=</span> <span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>run_playbook<span style="color:#1f2328">(</span>
+</span></span><span style="display:flex;"><span>            playbook<span style="color:#0550ae">=</span>os<span style="color:#0550ae">.</span>path<span style="color:#0550ae">.</span>join<span style="color:#1f2328">(</span><span style="color:#6a737d">self</span><span style="color:#0550ae">.</span>playbooks_dir<span style="color:#1f2328">,</span> <span style="color:#0a3069">&#34;set_user_password.yaml&#34;</span><span style="color:#1f2328">),</span>
+</span></span><span style="display:flex;"><span>            extra_vars<span style="color:#0550ae">=</span><span style="color:#1f2328">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#34;username&#34;</span><span style="color:#1f2328">:</span> username<span style="color:#1f2328">,</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#0a3069">&#34;password&#34;</span><span style="color:#1f2328">:</span> password
+</span></span><span style="display:flex;"><span>            <span style="color:#1f2328">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#1f2328">)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#cf222e">return</span> response
+</span></span></code></pre><p>通过 <code>config</code> 和 <code>user</code> 两个不同的锁名，Slurm 配置刷新和用户管理各自串行，同时两者之间互不干扰，可以并行执行。</p>
+
+    </div>
+
+    <footer class="post-footer">
+        <ul class="post-tags">
+            
+            <li><a href="/tags/%e5%88%86%e5%b8%83%e5%bc%8f%e9%94%81/">分布式锁</a></li>
+            
+            <li><a href="/tags/tooz/">tooz</a></li>
+            
+            <li><a href="/tags/redis/">Redis</a></li>
+            
+        </ul>
+
+        
+        <nav class="paginav">
+            <a class="prev" href="/2026/05/25/multimedia-demo/">
+                <span class="title">« 上一篇</span>
+                <br>
+                <span>多媒体内容演示</span>
+            </a>
+        
+        
+        
+            <a class="next" href="/2020/07/10/ansible-runner-ghost-variable/">
+                <span class="title">下一篇 »</span>
+                <br>
+                <span>ansible-runner private_data_dir引发的幽灵变量问题</span>
+            </a>
+        </nav>
+        
+    </footer>
+
+    
+    <div id="giscus-container" class="comments"></div>
+    
+</article>
+
+
+    </main>
+    <footer class="footer">
+        <span>&copy; 2026 <a href="/">galan&#39;s blog</a></span>
+        <span>·</span>
+        <span>Powered by blog-builder</span>
+    </footer>
+    <a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>
+    </a>
+    <script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const sp = localStorage.getItem("menu-scroll-position");
+        if (sp) menu.scrollLeft = parseInt(sp, 10);
+        menu.onscroll = function () { localStorage.setItem("menu-scroll-position", menu.scrollLeft); }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector('[id=\'' + decodeURIComponent(id) + '\']').scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector('[id=\'' + decodeURIComponent(id) + '\']').scrollIntoView();
+            }
+            if (id === "top") { history.replaceState(null, null, " "); } else { history.pushState(null, null, '#' + id); }
+        });
+    });
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > window.innerHeight || document.documentElement.scrollTop > window.innerHeight) {
+            toplink.classList.remove("hidden");
+        } else { toplink.classList.add("hidden"); }
+    };
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light'; localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark'; localStorage.setItem("pref-theme", 'dark');
+        }
+    });
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    }
+    </script>
+</body>
+</html>
+
