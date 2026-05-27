@@ -1,13 +1,8 @@
 
 <!DOCTYPE html>
-
-
-
-<html lang="zh-CN" data-theme="auto">
-
+<html lang="zh-CN" data-appearance="light">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="robots" content="index, follow">
     <title>归档 | galan&#39;s blog</title>
@@ -15,192 +10,143 @@
     <meta name="author" content="galanhao">
     <link rel="canonical" href="https://blog.galanhao.com/archives/">
     <link rel="stylesheet" href="/assets/css/main.css">
-    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" href="/assets/img/favicon.ico">
+    <script>
+    (function(){var d=document.documentElement;var s=localStorage.getItem("appearance");if(s){d.dataset.appearance=s}else if(window.matchMedia("(prefers-color-scheme:dark)").matches){d.dataset.appearance="dark"}else{d.dataset.appearance="light"}})();
+    </script>
 </head>
-
-<body class="list" id="top">
-
-    <header class="header">
-        <nav class="header-nav">
-            <div class="logo">
-                <a href="/" accesskey="h" title="galan&#39;s blog (Alt + H)">
-                    galan&#39;s blog
-                </a>
-                <div class="logo-switches">
-                    <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)">
-                        <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                        <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                    </button>
-                </div>
+<body class="flex flex-col min-h-screen">
+    <header class="site-header">
+        <nav class="container flex items-center justify-between">
+            <div class="brand">
+                <a href="/" class="brand-link" title="galan&#39;s blog">galan&#39;s blog</a>
             </div>
-            <ul id="menu" class="menu">
-                
-                <li>
-                    <a href="/" title="首页">
-                        <span>首页</span>
-                    </a>
-                </li>
-                
-                <li>
-                    <a href="/archives/" title="归档">
-                        <span>归档</span>
-                    </a>
-                </li>
-                
-                <li>
-                    <a href="/about/" title="关于">
-                        <span>关于</span>
-                    </a>
-                </li>
-                
-            </ul>
+            <div class="flex items-center gap-4">
+                <ul class="nav-list">
+                    
+                    <li class="nav-item">
+                        <a href="/" class="nav-link" title="首页">
+                            
+                            <span>首页</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="/archives/" class="nav-link" title="归档">
+                            
+                            <span>归档</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="/about/" class="nav-link" title="关于">
+                            
+                            <span>关于</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <button id="appearance-toggle" class="appearance-toggle" title="切换深色/浅色模式" aria-label="切换外观">
+                    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+            </div>
         </nav>
     </header>
-    <main class="main">
+    
+    <main class="container flex-1">
 
 
-<header class="page-header">
-    <h1>归档</h1>
-</header>
+<section class="archive-section">
+    <h1 class="archive-heading">归档</h1>
 
-<div class="archive-year">
 
-    <div class="archive-month">
-        <h3 class="archive-month-header">
-            <span>2026-05-27</span>
-        </h3>
-        <div class="archive-posts">
-            <article class="post-entry">
-                <header class="entry-header">
-                    <h2>博客上线了</h2>
-                </header>
-                <a class="entry-link" aria-label="post link to 博客上线了" href="/2026/05/27/blog-online/"></a>
-            </article>
-        </div>
-    </div>
 
-    <div class="archive-month">
-        <h3 class="archive-month-header">
-            <span>2026-05-25</span>
-        </h3>
-        <div class="archive-posts">
-            <article class="post-entry">
-                <header class="entry-header">
-                    <h2>多媒体内容演示</h2>
-                </header>
-                <a class="entry-link" aria-label="post link to 多媒体内容演示" href="/2026/05/25/multimedia-demo/"></a>
-            </article>
-        </div>
-    </div>
 
-    <div class="archive-month">
-        <h3 class="archive-month-header">
-            <span>2020-08-20</span>
-        </h3>
-        <div class="archive-posts">
-            <article class="post-entry">
-                <header class="entry-header">
-                    <h2>用tooz实现Python分布式锁：从选型到实现</h2>
-                </header>
-                <a class="entry-link" aria-label="post link to 用tooz实现Python分布式锁：从选型到实现" href="/2020/08/20/python-distributed-lock-tooz/"></a>
-            </article>
-        </div>
-    </div>
 
-    <div class="archive-month">
-        <h3 class="archive-month-header">
-            <span>2020-07-10</span>
-        </h3>
-        <div class="archive-posts">
-            <article class="post-entry">
-                <header class="entry-header">
-                    <h2>ansible-runner private_data_dir引发的幽灵变量问题</h2>
-                </header>
-                <a class="entry-link" aria-label="post link to ansible-runner private_data_dir引发的幽灵变量问题" href="/2020/07/10/ansible-runner-ghost-variable/"></a>
-            </article>
-        </div>
-    </div>
 
-    <div class="archive-month">
-        <h3 class="archive-month-header">
-            <span>2020-06-15</span>
-        </h3>
-        <div class="archive-posts">
-            <article class="post-entry">
-                <header class="entry-header">
-                    <h2>当SQLAlchemy遇上时区：datetime naive vs aware踩坑记</h2>
-                </header>
-                <a class="entry-link" aria-label="post link to 当SQLAlchemy遇上时区：datetime naive vs aware踩坑记" href="/2020/06/15/sqlalchemy-datetime-timezone/"></a>
-            </article>
-        </div>
-    </div>
+    
+    
+    
+    <h2 class="archive-year">2026</h2>
+    <ul class="archive-list">
+    
+    
+    <li class="archive-item">
+        <a href="/2026/05/27/blog-online/" class="archive-link">博客上线了</a>
+        <time class="archive-date">2026-05-27</time>
+    </li>
 
-    <div class="archive-month">
-        <h3 class="archive-month-header">
-            <span>2019-10-01</span>
-        </h3>
-        <div class="archive-posts">
-            <article class="post-entry">
-                <header class="entry-header">
-                    <h2>Python实现身份证号码校验：结构与算法解析</h2>
-                </header>
-                <a class="entry-link" aria-label="post link to Python实现身份证号码校验：结构与算法解析" href="/2019/10/01/python-id-card-validator/"></a>
-            </article>
-        </div>
-    </div>
+    
+    
+    <li class="archive-item">
+        <a href="/2026/05/25/multimedia-demo/" class="archive-link">多媒体内容演示</a>
+        <time class="archive-date">2026-05-25</time>
+    </li>
 
-</div>
+    
+    
+    </ul>
+    <h2 class="archive-year">2020</h2>
+    <ul class="archive-list">
+    
+    
+    <li class="archive-item">
+        <a href="/2020/08/20/python-distributed-lock-tooz/" class="archive-link">用tooz实现Python分布式锁：从选型到实现</a>
+        <time class="archive-date">2020-08-20</time>
+    </li>
+
+    
+    
+    <li class="archive-item">
+        <a href="/2020/07/10/ansible-runner-ghost-variable/" class="archive-link">ansible-runner private_data_dir引发的幽灵变量问题</a>
+        <time class="archive-date">2020-07-10</time>
+    </li>
+
+    
+    
+    <li class="archive-item">
+        <a href="/2020/06/15/sqlalchemy-datetime-timezone/" class="archive-link">当SQLAlchemy遇上时区：datetime naive vs aware踩坑记</a>
+        <time class="archive-date">2020-06-15</time>
+    </li>
+
+    
+    
+    </ul>
+    <h2 class="archive-year">2019</h2>
+    <ul class="archive-list">
+    
+    
+    <li class="archive-item">
+        <a href="/2019/10/01/python-id-card-validator/" class="archive-link">Python实现身份证号码校验：结构与算法解析</a>
+        <time class="archive-date">2019-10-01</time>
+    </li>
+
+</ul>
+
+
+</section>
+
+
 
 
     </main>
-    <footer class="footer">
-        <span>&copy; 2026 <a href="/">galan&#39;s blog</a></span>
-        <span>·</span>
-        <span>Powered by blog-builder</span>
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-inner">
+                
+                
+                <p class="copyright">&copy; 2026 <a href="/">galanhao</a></p>
+                
+                <p class="powered">Powered by <a href="https://github.com/galanhao/blog-forge" target="_blank" rel="noopener">blog-forge</a></p>
+            </div>
+        </div>
     </footer>
-    <a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"></polyline><polyline points="17 18 12 13 7 18"></polyline></svg>
-    </a>
     <script>
-    let menu = document.getElementById('menu');
-    if (menu) {
-        const sp = localStorage.getItem("menu-scroll-position");
-        if (sp) menu.scrollLeft = parseInt(sp, 10);
-        menu.onscroll = function () { localStorage.setItem("menu-scroll-position", menu.scrollLeft); }
-    }
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector('[id=\'' + decodeURIComponent(id) + '\']').scrollIntoView({ behavior: "smooth" });
-            } else {
-                document.querySelector('[id=\'' + decodeURIComponent(id) + '\']').scrollIntoView();
-            }
-            if (id === "top") { history.replaceState(null, null, " "); } else { history.pushState(null, null, '#' + id); }
-        });
-    });
-    var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        if (document.body.scrollTop > window.innerHeight || document.documentElement.scrollTop > window.innerHeight) {
-            toplink.classList.remove("hidden");
-        } else { toplink.classList.add("hidden"); }
-    };
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light'; localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark'; localStorage.setItem("pref-theme", 'dark');
-        }
-    });
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-        document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.querySelector("html").dataset.theme = 'dark';
-    }
+    (function(){
+        var btn=document.getElementById("appearance-toggle");
+        if(btn){btn.addEventListener("click",function(){var d=document.documentElement;var n=d.dataset.appearance==="dark"?"light":"dark";d.dataset.appearance=n;localStorage.setItem("appearance",n)})}
+    })();
     </script>
 </body>
 </html>
