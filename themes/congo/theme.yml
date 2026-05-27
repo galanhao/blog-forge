@@ -1,0 +1,39 @@
+name: congo
+version: "1.0.0"
+author: jpanther (adapted)
+description: "Congo theme adapted for blog-forge — clean, professional, Tailwind-inspired"
+
+config:
+  colorScheme: cosmic
+  defaultAppearance: light
+  autoSwitchAppearance: true
+  homepage:
+    layout: profile
+    showRecent: true
+    recentLimit: 5
+    showMoreLink: false
+    showReadingTime: true
+    showSummary: true
+    profile:
+      avatar: "/assets/images/avatar.svg"
+      subtitle: ""
+      showAvatar: true
+  article:
+    showDate: true
+    showSummary: true
+    showReadingTime: true
+    showToc: true
+    tocOpen: false
+    showPrevNext: true
+    showTags: true
+    showComments: false
+    showEdit: false
+  list:
+    showSummary: true
+    showReadingTime: true
+    showDate: true
+    groupByYear: true
+  footer:
+    showCopyright: true
+    showThemeAttribution: true
+    showPowerAttribution: true

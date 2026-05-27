@@ -1,0 +1,31 @@
+{{template "page-start" .}}
+
+<section class="taxonomy-section">
+    <h1 class="taxonomy-heading">{{if .Category}}分类: {{.Category.Name}}{{else}}分类{{end}}</h1>
+
+{{$showSummary := true}}{{if .Theme.Config}}{{if index .Theme.Config "list"}}{{if index .Theme.Config.list "showSummary"}}{{$showSummary = index .Theme.Config.list "showSummary"}}{{end}}{{end}}{{end}}
+
+<div class="article-list">
+{{range .Posts}}
+    <article class="article-card">
+        <div class="article-card-body">
+            <h3 class="article-card-title">
+                <a href="{{.Permalink}}">{{.Title}}</a>
+            </h3>
+            <div class="article-meta">
+                <time datetime="{{.Date}}">{{.Date}}</time>
+            </div>
+            {{if and $showSummary .Excerpt}}<p class="article-excerpt">{{.Excerpt}}</p>{{end}}
+        </div>
+    </article>
+{{end}}
+</div>
+
+{{if gt .Pagination.Total 1}}
+<nav class="pagination">
+    {{if .Pagination.PrevURL}}<a href="{{.Pagination.PrevURL}}" class="pagination-link pagination-prev">« 上一页</a>{{end}}
+    {{if .Pagination.NextURL}}<a href="{{.Pagination.NextURL}}" class="pagination-link pagination-next">下一页 »</a>{{end}}
+</nav>
+{{end}}
+
+{{template "page-end" .}}

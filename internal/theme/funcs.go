@@ -25,6 +25,8 @@ func defaultFuncs() template.FuncMap {
 		"join":          joinSep,
 		"dict":          dict,
 		"safeCSS":       safeCSS,
+		"now":           func() time.Time { return time.Now() },
+		"substr":        substr,
 	}
 }
 
@@ -97,4 +99,27 @@ func dict(args ...any) map[string]any {
 		}
 	}
 	return m
+}
+
+// substr returns a substring of s by rune index [start, end).
+// If end > len(s), it is clamped. Negative indices count from end.
+func substr(start, end int, s string) string {
+	runes := []rune(s)
+	l := len(runes)
+	if start < 0 {
+		start = l + start
+	}
+	if end < 0 {
+		end = l + end
+	}
+	if start < 0 {
+		start = 0
+	}
+	if end > l {
+		end = l
+	}
+	if start >= end {
+		return ""
+	}
+	return string(runes[start:end])
 }

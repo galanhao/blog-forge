@@ -1,0 +1,62 @@
+{{define "page-start"}}
+<!DOCTYPE html>
+<html lang="{{.Site.Language}}" data-appearance="{{$app := ""}}{{if .Theme.Config}}{{if index .Theme.Config "defaultAppearance"}}{{$app = index .Theme.Config "defaultAppearance" | default "light"}}{{end}}{{end}}{{$app}}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="robots" content="index, follow">
+    <title>{{if .Title}}{{.Title}} | {{end}}{{.Site.Title}}</title>
+    <meta name="description" content="{{if .Excerpt}}{{.Excerpt}}{{else}}{{.Site.Subtitle}}{{end}}">
+    <meta name="author" content="{{.Site.Author}}">
+    <link rel="canonical" href="{{.Site.URL}}{{.Permalink}}">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    {{$avatar := ""}}{{if .Theme.Config}}{{if index .Theme.Config "homepage"}}{{if index .Theme.Config.homepage "profile"}}{{if index .Theme.Config.homepage.profile "avatar"}}{{$avatar = index .Theme.Config.homepage.profile "avatar"}}{{end}}{{end}}{{end}}{{end}}
+    {{if $avatar}}<link rel="icon" href="{{$avatar}}">{{else}}<link rel="icon" href="/favicon.ico">{{end}}
+    <script>
+    (function(){var d=document.documentElement;var s=localStorage.getItem("appearance");if(s){d.dataset.appearance=s}else if(window.matchMedia("(prefers-color-scheme:dark)").matches){d.dataset.appearance="dark"}else{d.dataset.appearance="{{$app}}"}})();
+    </script>
+</head>
+<body class="flex flex-col min-h-screen">
+    <header class="site-header">
+        <nav class="container flex items-center justify-between">
+            <div class="brand">
+                <a href="/" class="brand-link" title="{{.Site.Title}}">{{.Site.Title}}</a>
+            </div>
+            <div class="flex items-center gap-4">
+                <ul class="nav-list">
+                    {{range .Site.Nav}}
+                    <li class="nav-item"><a href="{{.URL}}" class="nav-link" title="{{.Name}}">{{.Name}}</a></li>
+                    {{end}}
+                </ul>
+                <button id="appearance-toggle" class="appearance-toggle" title="切换深色/浅色模式" aria-label="切换外观">
+                    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+    <main class="container flex-1">
+{{end}}
+
+{{define "page-end"}}
+    </main>
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-inner">
+                {{$showCopyright := true}}{{if .Theme.Config}}{{if index .Theme.Config "footer"}}{{if index .Theme.Config.footer "showCopyright"}}{{$showCopyright = index .Theme.Config.footer "showCopyright"}}{{end}}{{end}}{{end}}
+                {{if $showCopyright}}
+                <p class="copyright">&copy; {{now | formatDate "2006"}} <a href="/">{{.Site.Author}}</a></p>
+                {{end}}
+                <p class="powered">Powered by <a href="https://github.com/galanhao/blog-forge" target="_blank" rel="noopener">blog-forge</a></p>
+            </div>
+        </div>
+    </footer>
+    <script>
+    (function(){
+        var btn=document.getElementById("appearance-toggle");
+        if(btn){btn.addEventListener("click",function(){var d=document.documentElement;var n=d.dataset.appearance==="dark"?"light":"dark";d.dataset.appearance=n;localStorage.setItem("appearance",n)})}
+    })();
+    </script>
+</body>
+</html>
+{{end}}

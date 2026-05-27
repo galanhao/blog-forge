@@ -1,0 +1,44 @@
+{{template "page-start" .}}
+
+<section class="archive-section">
+    <h1 class="archive-heading">{{.Title}}</h1>
+
+{{$groupByYear := true}}{{if .Theme.Config}}{{if index .Theme.Config "list"}}{{if index .Theme.Config.list "groupByYear"}}{{$groupByYear = index .Theme.Config.list "groupByYear"}}{{end}}{{end}}{{end}}
+
+{{if $groupByYear}}
+{{$currentYear := ""}}
+{{range .Posts}}
+    {{$year := substr 0 4 .Date}}
+    {{if ne $year $currentYear}}
+    {{if ne $currentYear ""}}</ul>{{end}}
+    <h2 class="archive-year">{{$year}}</h2>
+    <ul class="archive-list">
+    {{$currentYear = $year}}
+    {{end}}
+    <li class="archive-item">
+        <a href="{{.Permalink}}" class="archive-link">{{.Title}}</a>
+        <time class="archive-date">{{.Date}}</time>
+    </li>
+{{end}}
+{{if ne $currentYear ""}}</ul>{{end}}
+
+{{else}}
+<ul class="archive-list">
+{{range .Posts}}
+    <li class="archive-item">
+        <a href="{{.Permalink}}" class="archive-link">{{.Title}}</a>
+        <time class="archive-date">{{.Date}}</time>
+    </li>
+{{end}}
+</ul>
+{{end}}
+</section>
+
+{{if gt .Pagination.Total 1}}
+<nav class="pagination">
+    {{if .Pagination.PrevURL}}<a href="{{.Pagination.PrevURL}}" class="pagination-link pagination-prev">« 上一页</a>{{end}}
+    {{if .Pagination.NextURL}}<a href="{{.Pagination.NextURL}}" class="pagination-link pagination-next">下一页 »</a>{{end}}
+</nav>
+{{end}}
+
+{{template "page-end" .}}

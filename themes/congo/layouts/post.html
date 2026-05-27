@@ -1,0 +1,59 @@
+{{template "page-start" .}}
+
+<article class="prose-article">
+    <header class="article-header">
+        <h1 class="article-title">{{.Title}}</h1>
+        <div class="article-meta">
+            {{if .Date}}<time datetime="{{.Date}}">{{.Date}}</time>{{end}}
+            {{if .Author}}<span class="meta-divider">·</span><span>{{.Author}}</span>{{end}}
+        </div>
+    </header>
+
+    {{$showToc := true}}{{$tocOpen := false}}{{if .Theme.Config}}{{if index .Theme.Config "article"}}{{if index .Theme.Config.article "showToc"}}{{$showToc = index .Theme.Config.article "showToc"}}{{end}}{{if index .Theme.Config.article "tocOpen"}}{{$tocOpen = index .Theme.Config.article "tocOpen"}}{{end}}{{end}}{{end}}
+
+    {{if and $showToc .TOC}}
+    <details class="toc-details" {{if $tocOpen}}open{{end}}>
+        <summary class="toc-summary">目录</summary>
+        <div class="toc-content">
+            {{safeHTML .TOC}}
+        </div>
+    </details>
+    {{end}}
+
+    <div class="article-body">
+        {{safeHTML .Content}}
+    </div>
+
+    {{$showTags := true}}{{if .Theme.Config}}{{if index .Theme.Config "article"}}{{if index .Theme.Config.article "showTags"}}{{$showTags = index .Theme.Config.article "showTags"}}{{end}}{{end}}{{end}}
+
+    {{if and $showTags .Tags}}
+    <footer class="article-footer">
+        <div class="tag-list">
+            {{range .Tags}}
+            <a href="{{.URL}}" class="tag-link">#{{.Name}}</a>
+            {{end}}
+        </div>
+    </footer>
+    {{end}}
+
+    {{$showPrevNext := true}}{{if .Theme.Config}}{{if index .Theme.Config "article"}}{{if index .Theme.Config.article "showPrevNext"}}{{$showPrevNext = index .Theme.Config.article "showPrevNext"}}{{end}}{{end}}{{end}}
+
+    {{if $showPrevNext}}
+    <nav class="prev-next">
+        {{if .Prev}}
+        <a href="{{.Prev.Permalink}}" class="prev-next-link prev-link">
+            <span class="prev-next-label">← 上一篇</span>
+            <span class="prev-next-title">{{.Prev.Title}}</span>
+        </a>
+        {{end}}
+        {{if .Next}}
+        <a href="{{.Next.Permalink}}" class="prev-next-link next-link">
+            <span class="prev-next-label">下一篇 →</span>
+            <span class="prev-next-title">{{.Next.Title}}</span>
+        </a>
+        {{end}}
+    </nav>
+    {{end}}
+</article>
+
+{{template "page-end" .}}

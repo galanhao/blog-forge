@@ -1,0 +1,69 @@
+{{template "page-start" .}}
+
+{{$layout := "page"}}{{if .Theme.Config}}{{if index .Theme.Config "homepage"}}{{if index .Theme.Config.homepage "layout"}}{{$layout = index .Theme.Config.homepage "layout" | default "page"}}{{end}}{{end}}{{end}}
+
+{{if eq $layout "profile"}}
+{{/* Profile layout: avatar + bio + recent posts */}}
+{{$avatar := ""}}{{$subtitle := ""}}{{$showAvatar := true}}{{if .Theme.Config}}{{if index .Theme.Config "homepage"}}{{if index .Theme.Config.homepage "profile"}}{{if index .Theme.Config.homepage.profile "avatar"}}{{$avatar = index .Theme.Config.homepage.profile "avatar"}}{{end}}{{if index .Theme.Config.homepage.profile "subtitle"}}{{$subtitle = index .Theme.Config.homepage.profile "subtitle"}}{{end}}{{if index .Theme.Config.homepage.profile "showAvatar"}}{{$showAvatar = index .Theme.Config.homepage.profile "showAvatar"}}{{end}}{{end}}{{end}}{{end}}
+
+<section class="profile-section">
+    {{if and $showAvatar $avatar}}
+    <div class="profile-avatar">
+        <img src="{{$avatar}}" alt="{{.Site.Author}}" class="avatar-img" loading="lazy">
+    </div>
+    {{end}}
+    <h1 class="profile-title">{{.Site.Author}}</h1>
+    {{if $subtitle}}<p class="profile-subtitle">{{$subtitle}}</p>{{end}}
+    {{if .Site.Subtitle}}{{if not $subtitle}}<p class="profile-subtitle">{{.Site.Subtitle}}</p>{{end}}{{end}}
+</section>
+
+{{$showRecent := true}}{{$recentLimit := 5}}{{if .Theme.Config}}{{if index .Theme.Config "homepage"}}{{if index .Theme.Config.homepage "showRecent"}}{{$showRecent = index .Theme.Config.homepage "showRecent"}}{{end}}{{if index .Theme.Config.homepage "recentLimit"}}{{$recentLimit = index .Theme.Config.homepage "recentLimit" | default 5}}{{end}}{{end}}{{end}}
+
+{{if and $showRecent .Posts}}
+<section class="recent-section">
+    <h2 class="recent-heading">近期文章</h2>
+    <div class="article-list">
+    {{range $i, $post := .Posts}}{{if lt $i $recentLimit}}
+        <article class="article-card">
+            <div class="article-card-body">
+                <h3 class="article-card-title">
+                    <a href="{{$post.Permalink}}">{{$post.Title}}</a>
+                </h3>
+                <div class="article-meta">
+                    <time datetime="{{$post.Date}}">{{$post.Date}}</time>
+                </div>
+                {{if $post.Excerpt}}<p class="article-excerpt">{{$post.Excerpt}}</p>{{end}}
+            </div>
+        </article>
+    {{end}}{{end}}
+    </div>
+</section>
+{{end}}
+
+{{else}}
+{{/* Default page layout: post list */}}
+<section class="article-list">
+{{range .Posts}}
+    <article class="article-card">
+        <div class="article-card-body">
+            <h3 class="article-card-title">
+                <a href="{{.Permalink}}">{{.Title}}</a>
+            </h3>
+            <div class="article-meta">
+                <time datetime="{{.Date}}">{{.Date}}</time>
+            </div>
+            {{if .Excerpt}}<p class="article-excerpt">{{.Excerpt}}</p>{{end}}
+        </div>
+    </article>
+{{end}}
+</section>
+{{end}}
+
+{{if gt .Pagination.Total 1}}
+<nav class="pagination">
+    {{if .Pagination.PrevURL}}<a href="{{.Pagination.PrevURL}}" class="pagination-link pagination-prev">« 上一页</a>{{end}}
+    {{if .Pagination.NextURL}}<a href="{{.Pagination.NextURL}}" class="pagination-link pagination-next">下一页 »</a>{{end}}
+</nav>
+{{end}}
+
+{{template "page-end" .}}

@@ -1,5 +1,3 @@
-// Package site orchestrates the full build pipeline:
-// load content → render markdown → compute permalinks → apply templates → write output.
 package site
 
 import (
@@ -17,15 +15,17 @@ import (
 // Builder orchestrates the build pipeline.
 type Builder struct {
 	cfg      *config.SiteConfig
+	siteDir  string // root directory of the site (contains content/, assets/, static/)
 	loader   *content.Loader
 	renderer *render.MarkdownRenderer
 	theme    *theme.Theme
 	engine   *theme.Engine
 }
 
-// New creates a Builder from site config.
-func New(cfg *config.SiteConfig, themesDir string) (*Builder, error) {
-	loader := content.NewLoader("content")
+// New creates a Builder from site config and site root directory.
+func New(cfg *config.SiteConfig, siteDir string, themesDir string) (*Builder, error) {
+	contentDir := filepath.Join(siteDir, "content")
+	loader := content.NewLoader(contentDir)
 	renderer := render.NewMarkdownRenderer()
 
 	themeDir := filepath.Join(themesDir, cfg.Theme)
@@ -41,6 +41,7 @@ func New(cfg *config.SiteConfig, themesDir string) (*Builder, error) {
 
 	return &Builder{
 		cfg:      cfg,
+		siteDir:  siteDir,
 		loader:   loader,
 		renderer: renderer,
 		theme:    t,
@@ -107,7 +108,7 @@ func (b *Builder) Build(distDir string) error {
 		return err
 	}
 
-	if err := copyAssets(b.theme, distDir); err != nil {
+	if err := copyAssets(b.theme, b.siteDir, distDir); err != nil {
 		return fmt.Errorf("copy assets: %w", err)
 	}
 

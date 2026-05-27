@@ -1,0 +1,12 @@
+{{template "page-start" .}}
+
+<article class="prose-article">
+    <header class="article-header">
+        <h1 class="article-title">{{.Title}}</h1>
+    </header>
+    <div class="article-body">
+        {{safeHTML .Content}}
+    </div>
+</article>
+
+{{template "page-end" .}}

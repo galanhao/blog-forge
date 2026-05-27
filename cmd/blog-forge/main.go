@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"time"
@@ -11,8 +12,6 @@ import (
 )
 
 const (
-	defaultConfig = "_config.yml"
-	defaultDist   = "dist"
 	defaultThemes = "themes"
 )
 
@@ -50,27 +49,35 @@ func printUsage() {
 	fmt.Println("blog-forge - static site generator")
 	fmt.Println()
 	fmt.Println("Usage:")
-	fmt.Println("  blog-forge build    Build the site")
-	fmt.Println("  blog-forge new      Create a new post")
-	fmt.Println("  blog-forge init     Initialize a new site")
+	fmt.Println("  blog-forge build [-site DIR] [-config FILE] [-themes DIR] [-dist DIR]")
+	fmt.Println("  blog-forge new <title>")
+	fmt.Println("  blog-forge init")
 }
 
 func runBuild() error {
-	cfg, err := config.Load(defaultConfig)
+	buildCmd := flag.NewFlagSet("build", flag.ExitOnError)
+	siteDir := buildCmd.String("site", ".", "site root directory (contains content/, assets/, static/)")
+	configFile := buildCmd.String("config", "_config.yml", "path to config file")
+	themesDir := buildCmd.String("themes", defaultThemes, "path to themes directory")
+	distDir := buildCmd.String("dist", "dist", "output directory")
+
+	buildCmd.Parse(os.Args[2:])
+
+	cfg, err := config.Load(*configFile)
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
 
-	builder, err := site.New(cfg, defaultThemes)
+	builder, err := site.New(cfg, *siteDir, *themesDir)
 	if err != nil {
 		return fmt.Errorf("init builder: %w", err)
 	}
 
-	if err := builder.Build(defaultDist); err != nil {
+	if err := builder.Build(*distDir); err != nil {
 		return fmt.Errorf("build: %w", err)
 	}
 
-	fmt.Printf("✅ Site built to %s/\n", defaultDist)
+	fmt.Printf("✅ Site built to %s/\n", *distDir)
 	return nil
 }
 

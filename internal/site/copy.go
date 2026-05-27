@@ -8,7 +8,7 @@ import (
 )
 
 // copyAssets copies theme assets, theme static, site static, and site assets to dist.
-func copyAssets(t *theme.Theme, distDir string) error {
+func copyAssets(t *theme.Theme, siteDir string, distDir string) error {
 	// Theme assets → dist/assets/ (CSS, JS from theme)
 	if err := copyDirIfExists(t.AssetsDir(), filepath.Join(distDir, "assets")); err != nil {
 		return err
@@ -18,13 +18,15 @@ func copyAssets(t *theme.Theme, distDir string) error {
 		return err
 	}
 	// Site static → dist/ (site-level static files)
-	if err := copyDirIfExists("static", distDir); err != nil {
+	siteStatic := filepath.Join(siteDir, "static")
+	if err := copyDirIfExists(siteStatic, distDir); err != nil {
 		return err
 	}
 	// Site assets → dist/assets/ (images, audio, video under assets/)
 	// Merges with theme assets: theme has css/js, site has images/audio/video.
 	// No conflict between the two.
-	if err := copyDirIfExists("assets", filepath.Join(distDir, "assets")); err != nil {
+	siteAssets := filepath.Join(siteDir, "assets")
+	if err := copyDirIfExists(siteAssets, filepath.Join(distDir, "assets")); err != nil {
 		return err
 	}
 	return nil
