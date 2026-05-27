@@ -6,7 +6,15 @@ timezone: Asia/Shanghai
 url: "https://blog.galanhao.com"
 root: /
 per_page: 10
-theme: papermod
+theme: congo
+
+# Site-level visual assets.
+# Place images under `assets/` (e.g. assets/img/favicon.ico) so they are
+# copied to dist/assets/img/ during build.  Or use `static/` for root-level
+# files (e.g. static/favicon.ico → dist/favicon.ico).
+favicon: /assets/img/favicon.ico    # browser tab icon
+avatar: /assets/img/avatar.png      # homepage profile avatar
+banner: /assets/img/banner.jpg      # homepage banner image
 
 permalink:
   format: date-full

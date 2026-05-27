@@ -19,6 +19,9 @@ type SiteConfig struct {
 	Root       string        `yaml:"root"`
 	PerPage    int           `yaml:"per_page"`
 	Theme      string        `yaml:"theme"`
+	Favicon    string        `yaml:"favicon"`
+	Avatar     string        `yaml:"avatar"`
+	Banner     string        `yaml:"banner"`
 	Permalink  PermalinkConf `yaml:"permalink"`
 	Deploy     DeployConf    `yaml:"deploy"`
 	Integrate  IntegrateConf `yaml:"integrations"`
@@ -53,8 +56,8 @@ type IntegrateConf struct {
 
 // CommentConf configures the comment system.
 type CommentConf struct {
-	Provider string         `yaml:"provider"` // giscus / none
-	Giscus   *GiscusConf    `yaml:"giscus"`
+	Provider string      `yaml:"provider"` // giscus / none
+	Giscus   *GiscusConf `yaml:"giscus"`
 }
 
 // GiscusConf holds giscus-specific settings.
@@ -100,9 +103,9 @@ func DefaultConfig() *SiteConfig {
 			Format: "date-full",
 		},
 		Integrate: IntegrateConf{
-			Comment: CommentConf{Provider: "none"},
+			Comment:   CommentConf{Provider: "none"},
 			Analytics: AnalyticsConf{Provider: "none"},
-			PV: PVConf{Provider: "none"},
+			PV:        PVConf{Provider: "none"},
 			Wallpaper: WallpaperConf{Provider: "none"},
 		},
 	}

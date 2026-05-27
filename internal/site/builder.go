@@ -10,6 +10,7 @@ import (
 	"github.com/galanhao/blog-forge/internal/permalink"
 	"github.com/galanhao/blog-forge/internal/render"
 	"github.com/galanhao/blog-forge/internal/theme"
+	"gopkg.in/yaml.v3"
 )
 
 // Builder orchestrates the build pipeline.
@@ -28,11 +29,20 @@ func New(cfg *config.SiteConfig, siteDir string, themesDir string) (*Builder, er
 	loader := content.NewLoader(contentDir)
 	renderer := render.NewMarkdownRenderer()
 
+	// 1. Load theme defaults from themes/<name>/theme.yml
 	themeDir := filepath.Join(themesDir, cfg.Theme)
 	t, err := theme.Load(themeDir)
 	if err != nil {
 		return nil, fmt.Errorf("load theme: %w", err)
 	}
+
+	// 2. Merge theme-level _config.yml if it exists (theme author overrides)
+	themeCfgPath := filepath.Join(themeDir, "_config.yml")
+	mergeYAML(t, themeCfgPath)
+
+	// 3. Merge site-level _themes/<name>/_config.yml if it exists (user per-theme overrides)
+	siteThemeCfg := filepath.Join(siteDir, "_themes", cfg.Theme, "_config.yml")
+	mergeYAML(t, siteThemeCfg)
 
 	engine, err := theme.NewEngine(t)
 	if err != nil {
@@ -47,6 +57,20 @@ func New(cfg *config.SiteConfig, siteDir string, themesDir string) (*Builder, er
 		theme:    t,
 		engine:   engine,
 	}, nil
+}
+
+// mergeYAML reads a YAML file and deep-merges it into the theme config.
+// Silently skips if the file does not exist.
+func mergeYAML(t *theme.Theme, path string) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return
+	}
+	var overrides map[string]any
+	if err := yaml.Unmarshal(data, &overrides); err != nil {
+		return
+	}
+	t.MergeConfig(overrides)
 }
 
 // Build runs the full pipeline and writes output to distDir.
@@ -108,7 +132,7 @@ func (b *Builder) Build(distDir string) error {
 		return err
 	}
 
-	if err := copyAssets(b.theme, b.siteDir, distDir); err != nil {
+	if err := copyAssets(b.theme, b.siteDir, b.cfg.Theme, distDir); err != nil {
 		return fmt.Errorf("copy assets: %w", err)
 	}
 

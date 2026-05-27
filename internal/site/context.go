@@ -21,6 +21,16 @@ func buildSiteCtx(cfg *config.SiteConfig, t *theme.Theme) theme.SiteCtx {
 		})
 	}
 
+	// Banner: site config takes priority; theme.yml homepage.banner as fallback
+	banner := cfg.Banner
+	if banner == "" && t.Config != nil {
+		if hp, ok := t.Config["homepage"].(map[string]any); ok {
+			if b, ok := hp["banner"].(string); ok {
+				banner = b
+			}
+		}
+	}
+
 	return theme.SiteCtx{
 		Title:    cfg.Title,
 		Subtitle: cfg.Subtitle,
@@ -29,6 +39,9 @@ func buildSiteCtx(cfg *config.SiteConfig, t *theme.Theme) theme.SiteCtx {
 		Root:     cfg.Root,
 		Language: cfg.Language,
 		Timezone: cfg.Timezone,
+		Favicon:  cfg.Favicon,
+		Avatar:   cfg.Avatar,
+		Banner:   banner,
 		Nav:      nav,
 	}
 }

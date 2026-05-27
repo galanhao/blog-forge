@@ -7,14 +7,22 @@ import (
 	"github.com/galanhao/blog-forge/internal/theme"
 )
 
-// copyAssets copies theme assets, theme static, site static, and site assets to dist.
-func copyAssets(t *theme.Theme, siteDir string, distDir string) error {
+// copyAssets copies theme assets, theme static, user theme overrides, site static, and site assets to dist.
+func copyAssets(t *theme.Theme, siteDir string, themeName string, distDir string) error {
 	// Theme assets → dist/assets/ (CSS, JS from theme)
 	if err := copyDirIfExists(t.AssetsDir(), filepath.Join(distDir, "assets")); err != nil {
 		return err
 	}
 	// Theme static → dist/ (theme-level static files)
 	if err := copyDirIfExists(t.StaticDir(), distDir); err != nil {
+		return err
+	}
+	// User theme overrides: _themes/<name>/static/ → dist/ and _themes/<name>/assets/ → dist/assets/
+	userThemeDir := filepath.Join(siteDir, "_themes", themeName)
+	if err := copyDirIfExists(filepath.Join(userThemeDir, "static"), distDir); err != nil {
+		return err
+	}
+	if err := copyDirIfExists(filepath.Join(userThemeDir, "assets"), filepath.Join(distDir, "assets")); err != nil {
 		return err
 	}
 	// Site static → dist/ (site-level static files)

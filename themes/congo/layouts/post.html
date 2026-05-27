@@ -9,6 +9,14 @@
         </div>
     </header>
 
+    {{$showCover := true}}{{if .Theme.Config}}{{if index .Theme.Config "article"}}{{if index .Theme.Config.article "showCover"}}{{$showCover = index .Theme.Config.article "showCover"}}{{end}}{{end}}{{end}}
+
+    {{if and $showCover .CoverImage}}
+    <div class="article-cover">
+        <img src="{{.CoverImage}}" alt="{{.Title}}" class="cover-img" loading="lazy">
+    </div>
+    {{end}}
+
     {{$showToc := true}}{{$tocOpen := false}}{{if .Theme.Config}}{{if index .Theme.Config "article"}}{{if index .Theme.Config.article "showToc"}}{{$showToc = index .Theme.Config.article "showToc"}}{{end}}{{if index .Theme.Config.article "tocOpen"}}{{$tocOpen = index .Theme.Config.article "tocOpen"}}{{end}}{{end}}{{end}}
 
     {{if and $showToc .TOC}}
@@ -30,7 +38,7 @@
     <footer class="article-footer">
         <div class="tag-list">
             {{range .Tags}}
-            <a href="{{.URL}}" class="tag-link">#{{.Name}}</a>
+            <a href="{{.URL}}" class="tag-link">{{.Name}}</a>
             {{end}}
         </div>
     </footer>

@@ -9,6 +9,9 @@ type SiteCtx struct {
 	Root      string
 	Language  string
 	Timezone  string
+	Favicon   string
+	Avatar    string
+	Banner    string
 	Nav       []NavItemCtx
 	Config    map[string]any
 }

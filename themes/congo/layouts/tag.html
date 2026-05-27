@@ -3,11 +3,16 @@
 <section class="taxonomy-section">
     <h1 class="taxonomy-heading">{{if .Tag}}标签: {{.Tag.Name}}{{else}}标签{{end}}</h1>
 
-{{$showSummary := true}}{{if .Theme.Config}}{{if index .Theme.Config "list"}}{{if index .Theme.Config.list "showSummary"}}{{$showSummary = index .Theme.Config.list "showSummary"}}{{end}}{{end}}{{end}}
+{{$showCover := true}}{{$showSummary := true}}{{if .Theme.Config}}{{if index .Theme.Config "list"}}{{if index .Theme.Config.list "showCover"}}{{$showCover = index .Theme.Config.list "showCover"}}{{end}}{{if index .Theme.Config.list "showSummary"}}{{$showSummary = index .Theme.Config.list "showSummary"}}{{end}}{{end}}{{end}}
 
 <div class="article-list">
 {{range .Posts}}
     <article class="article-card">
+        {{if and $showCover .CoverImage}}
+        <div class="article-card-cover">
+            <img src="{{.CoverImage}}" alt="{{.Title}}" loading="lazy">
+        </div>
+        {{end}}
         <div class="article-card-body">
             <h3 class="article-card-title">
                 <a href="{{.Permalink}}">{{.Title}}</a>

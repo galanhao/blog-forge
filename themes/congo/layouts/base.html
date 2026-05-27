@@ -1,6 +1,6 @@
 {{define "page-start"}}
 <!DOCTYPE html>
-<html lang="{{.Site.Language}}" data-appearance="{{$app := ""}}{{if .Theme.Config}}{{if index .Theme.Config "defaultAppearance"}}{{$app = index .Theme.Config "defaultAppearance" | default "light"}}{{end}}{{end}}{{$app}}">
+<html lang="{{.Site.Language}}" data-appearance="{{$app := "light"}}{{if .Theme.Config}}{{if index .Theme.Config "defaultAppearance"}}{{$app = index .Theme.Config "defaultAppearance" | default "light"}}{{end}}{{end}}{{$app}}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -10,8 +10,7 @@
     <meta name="author" content="{{.Site.Author}}">
     <link rel="canonical" href="{{.Site.URL}}{{.Permalink}}">
     <link rel="stylesheet" href="/assets/css/main.css">
-    {{$avatar := ""}}{{if .Theme.Config}}{{if index .Theme.Config "homepage"}}{{if index .Theme.Config.homepage "profile"}}{{if index .Theme.Config.homepage.profile "avatar"}}{{$avatar = index .Theme.Config.homepage.profile "avatar"}}{{end}}{{end}}{{end}}{{end}}
-    {{if $avatar}}<link rel="icon" href="{{$avatar}}">{{else}}<link rel="icon" href="/favicon.ico">{{end}}
+    {{if .Site.Favicon}}<link rel="icon" href="{{.Site.Favicon}}">{{end}}
     <script>
     (function(){var d=document.documentElement;var s=localStorage.getItem("appearance");if(s){d.dataset.appearance=s}else if(window.matchMedia("(prefers-color-scheme:dark)").matches){d.dataset.appearance="dark"}else{d.dataset.appearance="{{$app}}"}})();
     </script>
@@ -25,7 +24,12 @@
             <div class="flex items-center gap-4">
                 <ul class="nav-list">
                     {{range .Site.Nav}}
-                    <li class="nav-item"><a href="{{.URL}}" class="nav-link" title="{{.Name}}">{{.Name}}</a></li>
+                    <li class="nav-item">
+                        <a href="{{.URL}}" class="nav-link" title="{{.Name}}">
+                            {{if .Icon}}<span class="nav-icon">{{.Icon}}</span>{{end}}
+                            <span>{{.Name}}</span>
+                        </a>
+                    </li>
                     {{end}}
                 </ul>
                 <button id="appearance-toggle" class="appearance-toggle" title="切换深色/浅色模式" aria-label="切换外观">
@@ -34,7 +38,10 @@
                 </button>
             </div>
         </nav>
-    </header>
+    </header>{{$showBanner := true}}{{if .Theme.Config}}{{if index .Theme.Config "homepage"}}{{if index .Theme.Config.homepage "showBanner"}}{{$showBanner = index .Theme.Config.homepage "showBanner"}}{{end}}{{end}}{{end}}
+    {{if and .Site.Banner $showBanner}}{{if eq .Layout "index"}}<div class="site-banner">
+        <img src="{{.Site.Banner}}" alt="{{.Site.Title}}" class="banner-img" loading="lazy">
+    </div>{{end}}{{end}}
     <main class="container flex-1">
 {{end}}
 

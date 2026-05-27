@@ -14,10 +14,8 @@ config:
     showMoreLink: false
     showReadingTime: true
     showSummary: true
-    profile:
-      avatar: "/assets/images/avatar.svg"
-      subtitle: ""
-      showAvatar: true
+    showBanner: true
+    showAvatar: true
   article:
     showDate: true
     showSummary: true
@@ -27,11 +25,13 @@ config:
     showPrevNext: true
     showTags: true
     showComments: false
+    showCover: true
     showEdit: false
   list:
     showSummary: true
     showReadingTime: true
     showDate: true
+    showCover: true
     groupByYear: true
   footer:
     showCopyright: true

@@ -1,20 +1,18 @@
 {{template "page-start" .}}
 
-{{$layout := "page"}}{{if .Theme.Config}}{{if index .Theme.Config "homepage"}}{{if index .Theme.Config.homepage "layout"}}{{$layout = index .Theme.Config.homepage "layout" | default "page"}}{{end}}{{end}}{{end}}
+{{$layout := "profile"}}{{if .Theme.Config}}{{if index .Theme.Config "homepage"}}{{if index .Theme.Config.homepage "layout"}}{{$layout = index .Theme.Config.homepage "layout" | default "profile"}}{{end}}{{end}}{{end}}
 
 {{if eq $layout "profile"}}
-{{/* Profile layout: avatar + bio + recent posts */}}
-{{$avatar := ""}}{{$subtitle := ""}}{{$showAvatar := true}}{{if .Theme.Config}}{{if index .Theme.Config "homepage"}}{{if index .Theme.Config.homepage "profile"}}{{if index .Theme.Config.homepage.profile "avatar"}}{{$avatar = index .Theme.Config.homepage.profile "avatar"}}{{end}}{{if index .Theme.Config.homepage.profile "subtitle"}}{{$subtitle = index .Theme.Config.homepage.profile "subtitle"}}{{end}}{{if index .Theme.Config.homepage.profile "showAvatar"}}{{$showAvatar = index .Theme.Config.homepage.profile "showAvatar"}}{{end}}{{end}}{{end}}{{end}}
+{{$showAvatar := true}}{{if .Theme.Config}}{{if index .Theme.Config "homepage"}}{{if index .Theme.Config.homepage "showAvatar"}}{{$showAvatar = index .Theme.Config.homepage "showAvatar"}}{{end}}{{end}}{{end}}
 
 <section class="profile-section">
-    {{if and $showAvatar $avatar}}
+    {{if and $showAvatar .Site.Avatar}}
     <div class="profile-avatar">
-        <img src="{{$avatar}}" alt="{{.Site.Author}}" class="avatar-img" loading="lazy">
+        <img src="{{.Site.Avatar}}" alt="{{.Site.Author}}" class="avatar-img" loading="lazy">
     </div>
     {{end}}
     <h1 class="profile-title">{{.Site.Author}}</h1>
-    {{if $subtitle}}<p class="profile-subtitle">{{$subtitle}}</p>{{end}}
-    {{if .Site.Subtitle}}{{if not $subtitle}}<p class="profile-subtitle">{{.Site.Subtitle}}</p>{{end}}{{end}}
+    {{if .Site.Subtitle}}<p class="profile-subtitle">{{.Site.Subtitle}}</p>{{end}}
 </section>
 
 {{$showRecent := true}}{{$recentLimit := 5}}{{if .Theme.Config}}{{if index .Theme.Config "homepage"}}{{if index .Theme.Config.homepage "showRecent"}}{{$showRecent = index .Theme.Config.homepage "showRecent"}}{{end}}{{if index .Theme.Config.homepage "recentLimit"}}{{$recentLimit = index .Theme.Config.homepage "recentLimit" | default 5}}{{end}}{{end}}{{end}}
@@ -25,6 +23,12 @@
     <div class="article-list">
     {{range $i, $post := .Posts}}{{if lt $i $recentLimit}}
         <article class="article-card">
+            {{$showCover := true}}{{if $.Theme.Config}}{{if index $.Theme.Config "list"}}{{if index $.Theme.Config.list "showCover"}}{{$showCover = index $.Theme.Config.list "showCover"}}{{end}}{{end}}{{end}}
+            {{if and $showCover $post.CoverImage}}
+            <div class="article-card-cover">
+                <img src="{{$post.CoverImage}}" alt="{{$post.Title}}" loading="lazy">
+            </div>
+            {{end}}
             <div class="article-card-body">
                 <h3 class="article-card-title">
                     <a href="{{$post.Permalink}}">{{$post.Title}}</a>
@@ -41,10 +45,15 @@
 {{end}}
 
 {{else}}
-{{/* Default page layout: post list */}}
 <section class="article-list">
 {{range .Posts}}
     <article class="article-card">
+        {{$showCover := true}}{{if $.Theme.Config}}{{if index $.Theme.Config "list"}}{{if index $.Theme.Config.list "showCover"}}{{$showCover = index $.Theme.Config.list "showCover"}}{{end}}{{end}}{{end}}
+        {{if and $showCover .CoverImage}}
+        <div class="article-card-cover">
+            <img src="{{.CoverImage}}" alt="{{.Title}}" loading="lazy">
+        </div>
+        {{end}}
         <div class="article-card-body">
             <h3 class="article-card-title">
                 <a href="{{.Permalink}}">{{.Title}}</a>
